@@ -1,0 +1,15 @@
+{
+  "name": "sq-best-time-to-post",
+  "version": "1.0.0",
+  "description": "Best Time to Post — API Testing Dashboard",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "dotenv": "^16.4.0"
+  }
+}
