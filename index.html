@@ -177,6 +177,10 @@
 
 <div class="layout">
 
+  <div id="summary-banner" style="display:none; background:white; border:1px solid var(--g200); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
+    <div style="font-size:15px; font-weight:600; margin-bottom:12px;">Results Summary</div>
+    <div id="summary-content" style="font-size:13px; color:var(--g600); line-height:1.8;"></div>
+  </div>
   <div class="section-heading">Platform Data Availability</div>
   <div class="cards">
 
@@ -368,11 +372,11 @@ async function fetchMetaData(token) {
         if (ins.data?.length) insOk = true;
       } catch {}
     }
-    R.fb_post_metrics = { status: insOk ? 'ok' : 'fail', note: insOk ? 'Engagement + clicks available' : 'Could not fetch insights' };
+    R.fb_post_metrics = { status: insOk ? 'ok' : 'fail', note: insOk ? 'Engagement + clicks available' : 'Needs pages_read_engagement permission' };
 
     // FB page insights
     const pi = await gql(`${page.id}/insights?metric=page_post_engagements,page_views_total&period=day`, pt);
-    R.fb_page_insights = { status: pi.data?.length > 0 ? 'ok' : 'fail', note: pi.data?.length > 0 ? 'Daily engagement available' : pi.error?.message || 'Not available' };
+    R.fb_page_insights = { status: pi.data?.length > 0 ? 'ok' : 'fail', note: pi.data?.length > 0 ? 'Daily engagement available' : 'Needs pages_read_engagement' };
 
     // FB fans online (deprecated)
     const fo = await gql(`${page.id}/insights?metric=page_fans_online&period=day`, pt);
@@ -413,7 +417,7 @@ async function fetchMetaData(token) {
           if (ins.data?.length) igInsOk = true;
         } catch {}
       }
-      R.ig_post_metrics = { status: igInsOk ? 'ok' : 'fail', note: igInsOk ? 'Reach, impressions, saves' : 'Could not fetch' };
+      R.ig_post_metrics = { status: igInsOk ? 'ok' : 'fail', note: igInsOk ? 'Reach, impressions, saves' : 'Needs instagram_manage_insights' };
 
       // THE KEY: online_followers
       const ol = await gql(`${igId}/insights?metric=online_followers&period=lifetime`, token);
@@ -433,8 +437,13 @@ async function fetchMetaData(token) {
     document.getElementById('jb-fb').style.display = 'block';
     document.getElementById('jx-ig').textContent = JSON.stringify(R, null, 2);
     document.getElementById('jx-fb').textContent = JSON.stringify(R, null, 2);
+    setDone('ig'); setDone('fb');
+    showSummary(R);
     buildCal();
-  } catch (e) { console.error(e); }
+  } catch (e) {
+    console.error(e);
+    setDone('ig'); setDone('fb');
+  }
 }
 
 function updateMetaRows(R) {
@@ -507,7 +516,51 @@ function setLoading(p) {
   btn.classList.add('loading');
   btn.innerHTML = '<div class="spinner"></div> Fetching data...';
 }
+function setDone(p) {
+  const btn = document.getElementById(`btn-${p}`);
+  btn.classList.remove('loading');
+  btn.classList.add('done');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Done — see results above';
+}
 function toggleJSON(p) { document.getElementById(`jx-${p}`).classList.toggle('show'); }
+
+function showSummary(R) {
+  const el = document.getElementById('summary-banner');
+  const c = document.getElementById('summary-content');
+  el.style.display = 'block';
+  const lines = [];
+  // Count successes
+  const ok = Object.values(R).filter(v => v.status === 'ok').length;
+  const fail = Object.values(R).filter(v => v.status === 'fail').length;
+  lines.push(`<b style="color:var(--green)">&#10003; Got data (${ok})</b>: `);
+  const wins = [];
+  if (R.ig_online_followers?.status === 'ok') wins.push('IG online followers (hourly) — <b>key metric for Best Time to Post</b>');
+  if (R.ig_post_history?.status === 'ok') wins.push(`IG posts (${R.ig_post_history.note})`);
+  if (R.ig_profile?.status === 'ok') wins.push(`IG profile (${R.ig_profile.note})`);
+  if (R.fb_post_history?.status === 'ok') wins.push(`FB posts (${R.fb_post_history.note})`);
+  if (R.fb_inferred_times?.status === 'ok') wins.push(`FB inferred best times (${R.fb_inferred_times.note})`);
+  if (R.ig_audience_geo?.status === 'ok') wins.push('IG audience demographics');
+  if (R.ig_post_metrics?.status === 'ok') wins.push('IG per-post insights');
+  if (R.fb_post_metrics?.status === 'ok') wins.push('FB per-post insights');
+  if (R.fb_page_insights?.status === 'ok') wins.push('FB page engagement');
+  lines.push(wins.map(w => `&nbsp;&nbsp;&#8226; ${w}`).join('<br>'));
+
+  lines.push(`<br><b style="color:var(--red)">&#10005; Not available (${fail})</b>:`);
+  const fails = [];
+  if (R.fb_fans_online?.status === 'fail') fails.push('FB fans online — <i>deprecated by Meta Sep 2024, no replacement</i>');
+  if (R.ig_audience_geo?.status === 'fail') fails.push('IG audience demographics — <i>account needs 100+ followers</i>');
+  if (R.ig_post_metrics?.status === 'fail') fails.push('IG per-post insights — <i>need instagram_manage_insights permission granted</i>');
+  if (R.fb_post_metrics?.status === 'fail') fails.push('FB per-post insights — <i>need pages_read_engagement permission granted</i>');
+  if (R.fb_page_insights?.status === 'fail') fails.push('FB page engagement — <i>need pages_read_engagement permission granted</i>');
+  if (R.ig_profile?.status === 'fail') fails.push(`IG profile — <i>${R.ig_profile.note}</i>`);
+  lines.push(fails.map(f => `&nbsp;&nbsp;&#8226; ${f}`).join('<br>'));
+
+  lines.push('<br><b>Conclusion:</b> ' + (R.ig_online_followers?.status === 'ok'
+    ? 'The key metric <b>online_followers</b> works! We can build personalized "Best Time to Post" for Instagram. For Facebook, we infer best times from historical post engagement.'
+    : 'Could not get online_followers. The IG account may need 100+ followers, or instagram_manage_insights permission is not granted.'));
+
+  c.innerHTML = lines.join('<br>');
+}
 
 // ── Calendar ──
 function buildCal() {
