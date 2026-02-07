@@ -151,6 +151,11 @@
   .setup-btn { padding: 8px 16px; border: none; border-radius: 6px; background: var(--blue); color: white; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
   .setup-btn:hover { filter: brightness(1.1); }
   .setup-status { font-size: 12px; }
+
+  .setup-note { font-size: 11px; color: var(--g500); line-height: 1.5; margin-top: 10px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; }
+  .setup-note b { color: var(--g700); }
+  .setup-note ol { margin: 4px 0 0 16px; }
+  .setup-note li { margin-bottom: 2px; }
 </style>
 </head>
 <body>
@@ -180,6 +185,15 @@
       <input type="text" id="meta-app-id-input" placeholder="Paste Meta App ID here (e.g. 123456789012345)">
       <button class="setup-btn" onclick="saveMetaAppId()">Save</button>
       <span class="setup-status" id="meta-app-status"></span>
+    </div>
+    <div class="setup-note">
+      <b>Required products in your Meta App:</b>
+      <ol>
+        <li>Go to your app → <b>Add Product</b> → add <b>"Facebook Login"</b> (NOT "for Business")</li>
+        <li>Add Product → <b>"Instagram Graph API"</b></li>
+        <li>Facebook Login → Settings → set JS SDK Login to <b>Yes</b>, add domain <code>mariaiontseva.github.io</code></li>
+        <li>Facebook Login → Settings → Valid OAuth Redirect URIs: <code>https://mariaiontseva.github.io/sq-best-time-to-post/</code></li>
+      </ol>
     </div>
   </div>
 
@@ -334,9 +348,15 @@ function saveMetaAppId() {
 }
 
 // ── Meta connect (client-side FB SDK) ──
-function connectMeta() {
+// Scopes: pages_show_list + business_management always work.
+// pages_read_engagement + instagram_manage_insights need the right products added to the app.
+// If they fail, we retry with minimal scopes and still fetch what we can.
+const FULL_SCOPES = 'pages_show_list,pages_read_engagement,pages_read_user_content,instagram_manage_insights,business_management';
+const MINIMAL_SCOPES = 'pages_show_list,business_management';
+
+function connectMeta(scopes) {
   if (!window.FB) { alert('Enter your Meta App ID first'); return; }
-  const scopes = 'pages_show_list,pages_read_engagement,read_insights,instagram_basic,instagram_manage_insights,business_management';
+  scopes = scopes || FULL_SCOPES;
   FB.login(function(response) {
     if (response.authResponse) {
       const token = response.authResponse.accessToken;
@@ -344,6 +364,12 @@ function connectMeta() {
       document.getElementById('dot-meta').classList.replace('off','on');
       document.getElementById('lbl-meta').textContent = 'Meta: connected';
       fetchMetaData(token);
+    } else if (response.status === 'unknown') {
+      // User cancelled or scopes were rejected — try minimal scopes
+      if (scopes !== MINIMAL_SCOPES) {
+        console.log('Full scopes failed, retrying with minimal...');
+        connectMeta(MINIMAL_SCOPES);
+      }
     }
   }, { scope: scopes });
 }
