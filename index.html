@@ -785,44 +785,28 @@ function buildProfileHealth(){
 
 // ── Signal Cards ──
 function platformTags(platform){
+  // Only actionable advice, max 4, consistent order for both platforms
   const tags=[];
+  let posts,audience,engRate=0,pw=0;
   if(platform==='ig'){
-    const igPosts=results.meta?._igPosts||[];
-    const igProf=results.meta?.ig_profile?.data;
-    const followers=igProf?.followers_count||0;
-    if(results.meta?.ig_online_followers?.status==='ok')tags.push({c:'green',t:'Live audience data'});
-    if(igPosts.length<20&&igPosts.length>0)tags.push({c:'purple',t:'Recycle best content'});
-    if(followers>0&&followers<500)tags.push({c:'blue',t:'Grow your following'});
-    if(igPosts.length>0&&followers>0){
-      const rate=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0)/igPosts.length/followers*100;
-      if(rate>=3)tags.push({c:'green',t:'Great engagement!'});
-      else if(rate<1)tags.push({c:'amber',t:'Reply to comments'});
-    }
-    if(igPosts.length>=2){
-      const ts=igPosts.map(p=>new Date(p.timestamp).getTime()).sort((a,b)=>a-b);
-      const pw=igPosts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1);
-      if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
-    }
-    tags.push({c:'green',t:'Use recommended times'});
+    posts=results.meta?._igPosts||[];
+    audience=(results.meta?.ig_profile?.data?.followers_count)||0;
+    if(posts.length>0&&audience>0)engRate=posts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0)/posts.length/audience*100;
+    if(posts.length>=2){const ts=posts.map(p=>new Date(p.timestamp).getTime()).sort((a,b)=>a-b);pw=posts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1)}
   }else{
-    const fbPosts=results.meta?._fbPosts||[];
-    const fbFans=results.meta?.fb_fan_count||0;
-    if(fbFans>0&&fbFans<100)tags.push({c:'blue',t:'Promote your page'});
-    if(fbPosts.length<20&&fbPosts.length>0)tags.push({c:'purple',t:'Recycle best content'});
-    if(fbPosts.length>0&&fbFans>0){
-      const rate=fbPosts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0)/fbPosts.length/fbFans*100;
-      if(rate>=1)tags.push({c:'green',t:'Strong engagement!'});
-      else if(rate<0.5)tags.push({c:'amber',t:'Boost engagement'});
-    }
-    if(fbPosts.length>=2){
-      const ts=fbPosts.map(p=>new Date(p.created_time).getTime()).sort((a,b)=>a-b);
-      const pw=fbPosts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1);
-      if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
-    }
-    tags.push({c:'green',t:'Use recommended times'});
-    tags.push({c:'blue',t:'Try new time slots'});
+    posts=results.meta?._fbPosts||[];
+    audience=results.meta?.fb_fan_count||0;
+    if(posts.length>0&&audience>0)engRate=posts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0)/posts.length/audience*100;
+    if(posts.length>=2){const ts=posts.map(p=>new Date(p.created_time).getTime()).sort((a,b)=>a-b);pw=posts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1)}
   }
-  return tags;
+  // Same priority order for both: frequency → content → audience → engagement → timing
+  if(pw>0&&pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
+  if(posts.length>0&&posts.length<20)tags.push({c:'purple',t:'Recycle best content'});
+  if(audience>0&&audience<500)tags.push({c:'blue',t:'Grow your audience'});
+  if(engRate>0&&engRate<1)tags.push({c:'amber',t:'Engage with followers'});
+  tags.push({c:'green',t:'Post at recommended times'});
+  tags.push({c:'green',t:'Try new time slots'});
+  return tags.slice(0,4);
 }
 
 function buildSignalCards(){
