@@ -426,14 +426,26 @@ async function fetchMetaData(token){
 
       // 4. IG Online Followers (KEY metric)
       feedStart('ig-online','Reading online followers data');
-      const ol=await gql(`${igId}/insights?metric=online_followers&period=lifetime`,token);
-      const olData=ol.data?.[0]?.values?.[0]?.value;
-      R.ig_online_followers={status:olData?'ok':'warn',data:olData};
-      if(olData){
-        const peak=Object.entries(olData).sort((a,b)=>b[1]-a[1])[0];
-        feedEnd('ig-online',`Peak: ${fmt(peak[1])} at ${fmtH(+peak[0])}`,'done');
-      }else{
-        feedEnd('ig-online',ol.error?.message||'Not available','warn');
+      try{
+        const ol=await gql(`${igId}/insights?metric=online_followers&period=lifetime`,token);
+        const olRaw=ol.data?.[0]?.values?.[0]?.value;
+        // Validate: must be an object with at least 1 key with a numeric value
+        const olData=(olRaw&&typeof olRaw==='object'&&Object.keys(olRaw).length>0)?olRaw:null;
+        R.ig_online_followers={status:olData?'ok':'warn',data:olData};
+        if(olData){
+          const entries=Object.entries(olData).sort((a,b)=>b[1]-a[1]);
+          const peak=entries[0];
+          if(peak){
+            feedEnd('ig-online',`Peak: ${fmt(peak[1])} at ${fmtH(+peak[0])}`,'done');
+          }else{
+            feedEnd('ig-online','Empty data returned','warn');
+          }
+        }else{
+          feedEnd('ig-online',ol.error?.message||'Not available (need 100+ followers)','warn');
+        }
+      }catch(e){
+        R.ig_online_followers={status:'fail',data:null};
+        feedEnd('ig-online','Error: '+e.message,'fail');
       }
 
       // 5. IG Post Insights (sample)
@@ -539,15 +551,22 @@ function showIGCard(prof,category){
 }
 
 function updateIGPosts(totalPosts,analyzedCount){
-  // If media_count was 0/null but we got posts, fix it
   const s=$('ig-stats');
-  if(s&&analyzedCount>0){
-    const existing=s.querySelectorAll('.ps');
-    let hasPostsStat=false;
-    existing.forEach(el=>{if(el.querySelector('.ps-l')?.textContent==='Posts')hasPostsStat=true});
-    if(!hasPostsStat){
-      s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(analyzedCount)}</span><span class="ps-l">Posts</span></div>`;
+  if(!s)return;
+  const count=analyzedCount||totalPosts||0;
+  if(count===0)return;
+  // Find existing Posts stat and update it, or add new one
+  const existing=s.querySelectorAll('.ps');
+  let updated=false;
+  existing.forEach(el=>{
+    const lbl=el.querySelector('.ps-l');
+    if(lbl&&lbl.textContent==='Posts'){
+      el.querySelector('.ps-n').textContent=fmt(count);
+      updated=true;
     }
+  });
+  if(!updated){
+    s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(count)}</span><span class="ps-l">Posts</span></div>`;
   }
 }
 
@@ -579,15 +598,27 @@ function computeAllScores(){
 function computeIG(){
   const grid=Array.from({length:7},()=>new Float64Array(24));
   const ol=results.meta?.ig_online_followers?.data;
-  if(ol&&typeof ol==='object'){
-    const vals=Object.values(ol).map(Number);
-    const mx=Math.max(...vals),mn=Math.min(...vals),range=mx-mn||1;
+  const olKeys=ol&&typeof ol==='object'?Object.keys(ol):[];
+  if(ol&&olKeys.length>0){
+    const vals=Object.values(ol).map(Number).filter(v=>!isNaN(v));
+    if(vals.length===0){
+      // All values are NaN or empty — use fallback
+      for(let d=0;d<7;d++)for(let h=0;h<24;h++){
+        let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
+      }
+      signalInfo.ig={type:'fallback',weight:0.30};
+      return grid;
+    }
+    const mx=Math.max(...vals),mn=Math.min(...vals),range=(mx-mn)||1;
     const hourly={};
-    for(let h=0;h<24;h++)hourly[h]=((Number(ol[String(h)])||0)-mn)/range;
+    for(let h=0;h<24;h++){
+      const raw=Number(ol[String(h)])||0;
+      hourly[h]=Math.max(0,Math.min(1,(raw-mn)/range));
+    }
     const dayF=computeIGDayFactor();
     for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=hourly[h]*0.8+dayF[d]*0.2;
-    const peakH=Object.entries(ol).sort((a,b)=>b[1]-a[1])[0];
-    signalInfo.ig={type:'real',peak:peakH?Number(peakH[1]):0,peakHour:peakH?parseInt(peakH[0]):0,weight:0.60};
+    const peakH=Object.entries(ol).sort((a,b)=>(Number(b[1])||0)-(Number(a[1])||0))[0];
+    signalInfo.ig={type:'real',peak:peakH?Number(peakH[1])||0:0,peakHour:peakH?parseInt(peakH[0])||0:0,weight:0.60};
   }else{
     for(let d=0;d<7;d++)for(let h=0;h<24;h++){
       let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
@@ -661,7 +692,8 @@ function computeCombined(){
 function lerpC(c1,c2,t){return[Math.round(c1[0]+(c2[0]-c1[0])*t),Math.round(c1[1]+(c2[1]-c1[1])*t),Math.round(c1[2]+(c2[2]-c1[2])*t)]}
 function heatColor(val,pal){
   const palettes={combined:[[240,253,244],[134,239,172],[34,197,94],[21,128,61]],ig:[[252,228,236],[244,143,177],[233,30,99],[173,20,87]],fb:[[227,242,253],[100,181,246],[24,119,242],[13,71,161]],li:[[225,240,250],[100,181,246],[10,102,194],[0,61,130]]};
-  const p=palettes[pal]||palettes.combined;const t=Math.max(0,Math.min(1,val));
+  const p=palettes[pal]||palettes.combined;
+  const t=isNaN(val)?0:Math.max(0,Math.min(1,val));
   const seg=t*(p.length-1);const i=Math.floor(seg);const f=seg-i;
   if(i>=p.length-1){const c=p[p.length-1];return`rgb(${c[0]},${c[1]},${c[2]})`}
   const c=lerpC(p[i],p[i+1],f);return`rgb(${c[0]},${c[1]},${c[2]})`;
