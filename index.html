@@ -103,6 +103,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .sig-insight{font-size:13px;color:var(--g600);line-height:1.4}
 .sig-insight strong{color:var(--g800)}
 
+/* ── Profile Health ── */
+.health{display:none;margin-bottom:20px}
+.health.show{display:block;animation:fadeUp .3s}
+.hgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:10px}
+.hcard{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:16px 20px}
+.hcard-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:10px;border-bottom:1px solid var(--g100)}
+.hcard-icon{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.hcard-icon.ig{background:linear-gradient(135deg,#833ab4,#E1306C)}
+.hcard-icon.fb{background:var(--fb)}
+.hcard-icon svg{width:14px;height:14px;fill:#fff}
+.hcard-plat{font-size:14px;font-weight:700;color:var(--g900);flex:1}
+.hcard-score{font-size:11px;font-weight:700;padding:3px 10px;border-radius:5px}
+.hcard-score.good{background:rgba(16,185,129,.1);color:var(--ok)}
+.hcard-score.ok{background:rgba(245,158,11,.1);color:var(--warn)}
+.hcard-score.weak{background:rgba(239,68,68,.1);color:var(--err)}
+.hrow{display:flex;align-items:flex-start;gap:8px;padding:5px 0;font-size:13px;line-height:1.5}
+.hrow-icon{flex-shrink:0;width:18px;text-align:center}
+.hrow-icon.good{color:var(--ok)}
+.hrow-icon.ok{color:var(--warn)}
+.hrow-icon.weak{color:var(--err)}
+.hrow-text{color:var(--g600)}
+.hrow-text strong{color:var(--g800)}
+
 /* ── Recs ── */
 .recs{display:none;margin-bottom:20px}
 .recs.show{display:block;animation:fadeUp .3s}
@@ -110,9 +133,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .rgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .rec{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px;text-align:center}
 .rec-rank{font-size:9px;font-weight:700;color:var(--g400);letter-spacing:.06em;margin-bottom:6px}
-.rec-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-bottom:4px}
-.rec-tag.ig{background:rgba(225,48,108,.08);color:var(--ig)}
-.rec-tag.fb{background:rgba(24,119,242,.08);color:var(--fb)}
 .rec-time{font-size:20px;font-weight:800;color:var(--g900)}
 .rec-day{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
 .rec-why{font-size:10px;color:var(--g500)}
@@ -217,6 +237,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
       </div>
       <div class="pstats" id="fb-stats"></div>
     </div>
+  </div>
+
+  <div class="health" id="health">
+    <div class="stitle">Profile Health</div>
+    <div class="hgrid" id="hcards"></div>
   </div>
 
   <div class="sigs" id="sigs">
@@ -336,7 +361,7 @@ function doMetaLogin(){
     if(r.authResponse){
       // Reset dashboard for new profile
       $('feed-list').innerHTML='';$('sgrid').innerHTML='';$('rgrid').innerHTML='';$('grid').innerHTML='';
-      $('sigs').classList.remove('show');$('recs').classList.remove('show');$('sched').classList.remove('show');
+      $('health').classList.remove('show');$('sigs').classList.remove('show');$('recs').classList.remove('show');$('sched').classList.remove('show');
       $('pc-ig').classList.remove('show');$('pc-fb').classList.remove('show');$('feed-panel').classList.remove('show');
       state.ig=true;state.fb=true;
       $('hero').querySelector('h1').textContent='Your personalized posting schedule';
@@ -381,6 +406,9 @@ async function fetchMetaData(token){
     if(!page){feedEnd('pages','No pages found — check permissions','fail');return}
     feedEnd('pages',page.name+(page.category?' · '+page.category:''),'done');
     const pt=page.access_token;
+
+    // Store page data for health assessment
+    R.fb_fan_count=page.fan_count||0;
 
     // Show FB card
     showFBCard(page);
@@ -444,6 +472,7 @@ async function fetchMetaData(token){
     // 5. FB Posts (with pagination — fetch ALL)
     feedStart('fb-posts','Analyzing your Facebook engagement');
     const pd=await gqlAll(`${page.id}/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100`,pt,10);
+    R._fbPosts=pd;
     R.fb_post_history={status:pd.length>0?'ok':'warn',count:pd.length};
     feedEnd('fb-posts',pd.length+' posts with engagement',pd.length>0?'done':'warn');
     updateFBPosts(pd.length);
@@ -689,6 +718,84 @@ function heatColor(val,pal){
   const c=lerpC(p[i],p[i+1],f);return`rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
+// ── Profile Health ──
+function buildProfileHealth(){
+  const el=$('hcards');el.innerHTML='';
+  const igProf=results.meta?.ig_profile?.data;
+  const igPosts=results.meta?._igPosts||[];
+  const igOl=results.meta?.ig_online_followers;
+  const fbPosts=results.meta?._fbPosts||[];
+  const fbFans=results.meta?.fb_fan_count||0;
+  const igSvg='<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
+  const fbSvg='<svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
+  let html='';
+
+  // Instagram health
+  if(state.ig&&igProf){
+    const followers=igProf.followers_count||0;
+    const rows=[];
+    if(igOl?.status==='ok')rows.push({s:'good',t:'Live follower data available — <strong>strongest signal</strong>'});
+    else if(followers>=100)rows.push({s:'ok',t:'Live data unavailable — using engagement history instead'});
+    else rows.push({s:'weak',t:'Under 100 followers — grow your audience for better data'});
+    if(igPosts.length>=50)rows.push({s:'good',t:'<strong>'+igPosts.length+' posts</strong> analyzed — highly accurate'});
+    else if(igPosts.length>=20)rows.push({s:'good',t:'<strong>'+igPosts.length+' posts</strong> analyzed — solid accuracy'});
+    else if(igPosts.length>=10)rows.push({s:'ok',t:'<strong>'+igPosts.length+' posts</strong> analyzed — more posts = better accuracy'});
+    else rows.push({s:'weak',t:'Only <strong>'+igPosts.length+' posts</strong> — keep posting to improve recommendations'});
+    if(igPosts.length>0&&followers>0){
+      const tEng=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0);
+      const rate=tEng/igPosts.length/followers*100;
+      if(rate>=3)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — excellent'});
+      else if(rate>=1)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — average'});
+      else rows.push({s:'ok',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — try posting at recommended times'});
+    }
+    if(igPosts.length>=2){
+      const dates=igPosts.map(p=>new Date(p.timestamp).getTime()).sort((a,b)=>a-b);
+      const spanW=(dates[dates.length-1]-dates[0])/(7*24*3600000);
+      const pw=spanW>0?igPosts.length/spanW:igPosts.length;
+      if(pw>=3)rows.push({s:'good',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — great consistency'});
+      else if(pw>=1)rows.push({s:'ok',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — try 3-4x/week for growth'});
+      else rows.push({s:'weak',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — aim for 3x/week'});
+    }
+    const goods=rows.filter(r=>r.s==='good').length;
+    const label=goods===rows.length?'Strong':goods>=rows.length/2?'Growing':'Needs work';
+    const cls=goods===rows.length?'good':goods>=rows.length/2?'ok':'weak';
+    html+=`<div class="hcard"><div class="hcard-head"><div class="hcard-icon ig">${igSvg}</div><span class="hcard-plat">Instagram</span><span class="hcard-score ${cls}">${label}</span></div>${rows.map(r=>`<div class="hrow"><span class="hrow-icon ${r.s}">${r.s==='good'?'✓':r.s==='ok'?'⚠':'✗'}</span><span class="hrow-text">${r.t}</span></div>`).join('')}</div>`;
+  }
+
+  // Facebook health
+  if(state.fb){
+    const rows=[];
+    if(fbPosts.length>=50)rows.push({s:'good',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — highly accurate'});
+    else if(fbPosts.length>=20)rows.push({s:'good',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — solid accuracy'});
+    else if(fbPosts.length>=10)rows.push({s:'ok',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — more posts = better accuracy'});
+    else rows.push({s:'weak',t:'Only <strong>'+fbPosts.length+' posts</strong> — keep posting to improve recommendations'});
+    if(fbFans>=1000)rows.push({s:'good',t:'<strong>'+fmt(fbFans)+'</strong> fans — established page'});
+    else if(fbFans>=100)rows.push({s:'ok',t:'<strong>'+fmt(fbFans)+'</strong> fans — keep growing your page'});
+    else rows.push({s:'weak',t:'<strong>'+fmt(fbFans)+'</strong> fans — promote your page to grow'});
+    if(fbPosts.length>0&&fbFans>0){
+      const tEng=fbPosts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0);
+      const rate=tEng/fbPosts.length/fbFans*100;
+      if(rate>=1)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — strong'});
+      else if(rate>=0.5)rows.push({s:'ok',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — average for Facebook'});
+      else rows.push({s:'ok',t:'<strong>'+rate.toFixed(2)+'%</strong> engagement rate — post at optimal times to improve'});
+    }
+    if(fbPosts.length>=2){
+      const dates=fbPosts.map(p=>new Date(p.created_time).getTime()).sort((a,b)=>a-b);
+      const spanW=(dates[dates.length-1]-dates[0])/(7*24*3600000);
+      const pw=spanW>0?fbPosts.length/spanW:fbPosts.length;
+      if(pw>=5)rows.push({s:'good',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — great consistency'});
+      else if(pw>=2)rows.push({s:'ok',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — try daily for more data'});
+      else rows.push({s:'weak',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — consistency drives results'});
+    }
+    const goods=rows.filter(r=>r.s==='good').length;
+    const label=goods===rows.length?'Strong':goods>=rows.length/2?'Growing':'Needs work';
+    const cls=goods===rows.length?'good':goods>=rows.length/2?'ok':'weak';
+    html+=`<div class="hcard"><div class="hcard-head"><div class="hcard-icon fb">${fbSvg}</div><span class="hcard-plat">Facebook</span><span class="hcard-score ${cls}">${label}</span></div>${rows.map(r=>`<div class="hrow"><span class="hrow-icon ${r.s}">${r.s==='good'?'✓':r.s==='ok'?'⚠':'✗'}</span><span class="hrow-text">${r.t}</span></div>`).join('')}</div>`;
+  }
+
+  if(html){el.innerHTML=html;$('health').classList.add('show')}
+}
+
 // ── Signal Cards ──
 function buildSignalCards(){
   const g=$('sgrid');g.innerHTML='';
@@ -739,14 +846,12 @@ function buildRecs(){
   const g=$('rgrid');g.innerHTML='';
   for(let i=0;i<picked.length;i++){
     const s=picked[i];
-    let topP='ig',topV=0;
-    if(state.ig&&scoreCache.ig&&scoreCache.ig[s.d][s.h]>topV){topV=scoreCache.ig[s.d][s.h];topP='ig'}
-    if(state.fb&&scoreCache.fb&&scoreCache.fb[s.d][s.h]>topV){topV=scoreCache.fb[s.d][s.h];topP='fb'}
-    let why='';
-    if(topP==='ig'){const ol=results.meta?.ig_online_followers?.data;why=ol?fmt(ol[String(s.h)]||0)+' followers active':'Peak engagement window'}
-    else if(topP==='fb'){const inf=results.meta?.fb_inferred_times?.data;const fbD=(s.d+1)%7;const v=inf?.[fbD+'-'+s.h];if(v!=null){const allV=Object.values(inf);const avg=allV.reduce((a,b)=>a+b,0)/allV.length;const lift=avg>0?Math.round((v/avg-1)*100):0;why=lift>0?lift+'% more engagement than average':'Strong engagement window'}else why='High predicted engagement'}
-    const pLabel=topP==='ig'?'Instagram':'Facebook';
-    g.innerHTML+=`<div class="rec"><div class="rec-rank">#${i+1}</div><span class="rec-tag ${topP}">${pLabel}</span><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${why}</div></div>`;
+    // Build combined "why" — show strongest reason from any platform
+    const whys=[];
+    if(state.ig){const ol=results.meta?.ig_online_followers?.data;if(ol&&ol[String(s.h)])whys.push(fmt(ol[String(s.h)])+' followers active')}
+    if(state.fb){const inf=results.meta?.fb_inferred_times?.data;if(inf){const fbD=(s.d+1)%7;const v=inf[fbD+'-'+s.h];if(v!=null){const allV=Object.values(inf);const avg=allV.reduce((a,b)=>a+b,0)/allV.length;const lift=avg>0?Math.round((v/avg-1)*100):0;if(lift>0)whys.push(lift+'% above avg engagement')}}}
+    const why=whys.join(' · ')||'High predicted activity';
+    g.innerHTML+=`<div class="rec"><div class="rec-rank">#${i+1}</div><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${why}</div></div>`;
   }
   $('recs').classList.add('show');
 }
@@ -868,6 +973,11 @@ function buildDashboard(){
     console.error('computeAllScores error:',e);
     feedStart('err-scores','Error computing scores');
     feedEnd('err-scores',e.message,'fail');
+  }
+  try{
+    buildProfileHealth();
+  }catch(e){
+    console.error('buildProfileHealth error:',e);
   }
   try{
     buildSignalCards();
