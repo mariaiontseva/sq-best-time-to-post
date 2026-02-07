@@ -383,7 +383,7 @@ async function fetchMetaData(token) {
     let insOk = false; let fbInsErr = '';
     for (const post of pd.slice(0, 3)) {
       try {
-        const ins = await gql(`${post.id}/insights?metric=post_impressions,post_clicks,post_reactions_by_type_total`, pt);
+        const ins = await gql(`${post.id}/insights?metric=post_impressions`, pt);
         if (ins.data?.length) { insOk = true; break; }
         if (ins.error?.message) fbInsErr = ins.error.message;
       } catch {}
@@ -428,7 +428,7 @@ async function fetchMetaData(token) {
       let igInsOk = false; let igInsErr = '';
       for (const m of md.slice(0, 3)) {
         try {
-          const metrics = m.media_type === 'VIDEO' ? 'reach,total_interactions,plays,saves' : 'reach,total_interactions,likes,comments,shares,saves';
+          const metrics = m.media_type === 'VIDEO' ? 'reach,total_interactions,plays,saved' : 'reach,total_interactions,likes,comments,shares,saved';
           const ins = await gql(`${m.id}/insights?metric=${metrics}`, token);
           if (ins.data?.length) { igInsOk = true; break; }
           if (ins.error?.message) igInsErr = ins.error.message;
@@ -442,7 +442,7 @@ async function fetchMetaData(token) {
       R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : (ol.error?.message || 'Permission not granted yet') };
 
       // Demographics (v21+ uses new metric names)
-      const demo = await gql(`${igId}/insights?metric=follower_demographics,reached_audience_demographics&period=lifetime&metric_type=total_value`, token);
+      const demo = await gql(`${igId}/insights?metric=follower_demographics,reached_audience_demographics&period=lifetime&timeframe=last_30_days&metric_type=total_value`, token);
       R.ig_audience_geo = { status: demo.data?.length > 0 ? 'ok' : 'fail', data: demo.data || null, note: demo.data?.length > 0 ? `${demo.data.length} demographic metrics` : (demo.error?.message || 'Not available') };
     } else {
       R.ig_profile = { status: 'fail', note: 'No IG Business account linked' };
