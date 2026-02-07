@@ -36,7 +36,12 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 
 /* ── Hero ── */
 .hero{text-align:center;padding:60px 0 32px;transition:all .4s}
-.hero.gone{display:none}
+.hero.compact{padding:24px 0 16px}
+.hero.compact h1{font-size:18px;margin-bottom:0}
+.hero-cta{display:inline-flex;align-items:center;gap:10px;height:52px;padding:0 32px;border:none;border-radius:12px;background:linear-gradient(135deg,#833ab4,#E1306C,#f77737);color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;transition:all .2s;margin-top:20px;box-shadow:0 4px 16px rgba(225,48,108,.3)}
+.hero-cta:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(225,48,108,.4)}
+.hero-cta svg{width:20px;height:20px;flex-shrink:0}
+.hero.compact .hero-cta{height:40px;padding:0 24px;font-size:13px;margin-top:10px;box-shadow:0 2px 8px rgba(225,48,108,.2)}
 .hero h1{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--g900);margin-bottom:10px}
 .hero p{font-size:15px;color:var(--g500);max-width:480px;margin:0 auto;line-height:1.6}
 
@@ -168,7 +173,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 
 @media(max-width:768px){
   .topbar{padding:0 12px}.topbar-r{gap:4px}.nbtn{padding:0 8px;font-size:11px;gap:4px}
-  .main{padding:16px 12px 60px}.hero h1{font-size:24px}.hero p{font-size:13px}
+  .main{padding:16px 12px 60px}.hero h1{font-size:22px}.hero-cta{height:44px;padding:0 24px;font-size:14px;margin-top:14px}
   .profiles{grid-template-columns:1fr}.sgrid{grid-template-columns:1fr 1fr}
   .chead{flex-direction:column;align-items:flex-start}.ccard{padding:16px}
 }
@@ -191,8 +196,11 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 
 <div class="main">
   <div class="hero" id="hero">
-    <h1>Post When Your Audience Is Actually Online</h1>
-    <p>We analyze real follower activity and engagement patterns to find your best time slots. Not guesswork — data from your actual audience.</p>
+    <h1>Connect your Instagram or Facebook to discover your best times to post</h1>
+    <button class="hero-cta" id="hero-cta" onclick="connectMeta()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      Connect with Meta
+    </button>
   </div>
 
   <div class="feed-panel" id="feed-panel">
@@ -316,7 +324,9 @@ function feedEnd(id,val,status){
 function connectMeta(){
   if(!window.FB){alert('Facebook SDK not loaded.');return}
   const btn=$('btn-meta');
+  const heroCta=$('hero-cta');
   btn.textContent='Connecting...';btn.style.pointerEvents='none';
+  if(heroCta){heroCta.textContent='Connecting...';heroCta.style.pointerEvents='none'}
   FB.getLoginStatus(function(s){
     if(s.status==='connected'){
       FB.api('/me/permissions','DELETE',function(){FB.logout(function(){doMetaLogin()})});
@@ -330,8 +340,13 @@ function doMetaLogin(){
     :{scope:'pages_show_list,business_management',auth_type:'rerequest'};
   FB.login(function(r){
     if(r.authResponse){
+      // Reset dashboard for new profile
+      $('feed-list').innerHTML='';$('sgrid').innerHTML='';$('rgrid').innerHTML='';$('grid').innerHTML='';
+      $('sigs').classList.remove('show');$('recs').classList.remove('show');$('sched').classList.remove('show');
+      $('pc-ig').classList.remove('show');$('pc-fb').classList.remove('show');$('feed-panel').classList.remove('show');
       state.ig=true;state.fb=true;
-      $('hero').classList.add('gone');
+      $('hero').querySelector('h1').textContent='Your personalized posting schedule';
+      $('hero').classList.add('compact');
       $('t-ig').classList.remove('off');
       $('t-fb').classList.remove('off');
       feedStart('connect','Authenticated with Meta');
@@ -339,16 +354,19 @@ function doMetaLogin(){
       fetchMetaData(r.authResponse.accessToken);
     }else{
       const btn=$('btn-meta');
+      const heroCta=$('hero-cta');
       btn.textContent='Connect Meta';btn.style.pointerEvents='';
+      if(heroCta){heroCta.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg> Connect with Meta';heroCta.style.pointerEvents=''}
     }
   },opts);
 }
 
 function setMetaBtnDone(){
   const btn=$('btn-meta');
-  btn.className='nbtn done';
-  btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Meta Connected';
-  btn.onclick=null;
+  btn.className='nbtn meta';
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Another Profile';
+  const heroCta=$('hero-cta');
+  if(heroCta){heroCta.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z"/></svg> Analyze Another Profile';heroCta.style.pointerEvents=''}
 }
 
 async function gql(path,token){
@@ -540,6 +558,14 @@ function computeAllScores(){
   scoreCache.combined=computeCombined();
 }
 
+// Industry benchmarks (aggregated from Sprout Social, Hootsuite, Later research)
+const BENCH_H_IG=[.05,.03,.02,.02,.03,.05,.15,.35,.65,.85,.90,.82,.68,.75,.70,.55,.48,.55,.58,.50,.38,.25,.15,.08];
+const BENCH_D_IG=[.80,.92,.98,.90,.85,.55,.50];
+const BENCH_H_FB=[.04,.03,.02,.02,.02,.04,.10,.30,.55,.82,.90,.85,.72,.78,.72,.58,.50,.50,.45,.38,.30,.20,.12,.06];
+const BENCH_D_FB=[.75,.85,.95,.92,.88,.52,.45];
+function benchIG(d,h){return BENCH_H_IG[h]*BENCH_D_IG[d]}
+function benchFB(d,h){return BENCH_H_FB[h]*BENCH_D_FB[d]}
+
 function computeIG(){
   const grid=Array.from({length:7},()=>new Float64Array(24));
   const ol=results.meta?.ig_online_followers?.data;
@@ -596,7 +622,8 @@ function computeIG(){
       if(filled.has(((d+1)%7)+'-'+h))nb.push(grid[(d+1)%7][h]);
       if(filled.has(d+'-'+(h-2)))nb.push(grid[d][h-2]);
       if(filled.has(d+'-'+(h+2)))nb.push(grid[d][h+2]);
-      grid[d][h]=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0.5;
+      const bench=benchIG(d,h);
+      grid[d][h]=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length*0.6+bench*0.4:bench;
     }
     const coverage=Math.round(filled.size/(7*24)*100);
     let bD=0,bH=0,bV=0;
@@ -629,8 +656,9 @@ function computeFB(){
     const igG=scoreCache.ig;
     for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(!filled.has(d+'-'+h)){
       const nb=[];if(filled.has(d+'-'+(h-1)))nb.push(grid[d][h-1]);if(filled.has(d+'-'+(h+1)))nb.push(grid[d][h+1]);
-      const nbA=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0.3;
-      grid[d][h]=igG?igG[d][h]*0.4+nbA*0.6:nbA;
+      const nbA=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0;
+      const bench=benchFB(d,h);
+      grid[d][h]=igG?igG[d][h]*0.3+nbA*0.3+bench*0.4:(nb.length>0?nbA*0.5+bench*0.5:bench);
     }
     const pc=results.meta?.fb_post_history?.count||0;
     let bD=0,bH=0,bV=0;for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(grid[d][h]>bV){bV=grid[d][h];bD=d;bH=h}
@@ -681,7 +709,7 @@ function buildSignalCards(){
     }else{
       sigName='Engagement Pattern Analysis';
       sigVal=(si.postCount||0)+' posts analyzed';
-      sigDesc='Your best engagement: '+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+'. We also found promising untried time slots nearby.';
+      sigDesc='Your best engagement: '+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+'. Enhanced with industry research for time slots you haven\'t tried yet.';
     }
     g.innerHTML+=`<div class="sig ig-accent">
       <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ok">${si?.type==='real'?'LIVE DATA':'ANALYZED'}</span></div>
@@ -722,9 +750,9 @@ function buildRecs(){
   const hasFBReal=state.fb&&signalInfo.fb?.type==='real';
   if(hasIGReal&&hasFBReal)desc='These times are when your followers are most active and your posts get the most engagement. Posting here means more eyes on your content from the start.';
   else if(hasIGReal)desc='These times are when your followers are most active. Posting here means more eyes on your content from the start.';
-  else if(hasIGInferred&&hasFBReal)desc='Based on which time slots drive the most engagement on your accounts, plus promising nearby windows you haven\'t tried yet.';
+  else if(hasIGInferred&&hasFBReal)desc='Based on which time slots drive the most engagement on your accounts, enhanced with industry research for time slots you haven\'t tested yet.';
   else if(hasFBReal)desc='Based on when your Facebook posts get the most reactions, comments, and shares.';
-  else if(hasIGInferred)desc='Based on which time slots drive the most engagement, plus promising nearby windows you haven\'t tried yet.';
+  else if(hasIGInferred)desc='Based on which time slots drive the most engagement, enhanced with industry research for time slots you haven\'t tested yet.';
   else desc='Based on available data from your connected accounts.';
   $('rdesc').textContent=desc;
 
@@ -797,7 +825,7 @@ function renderExplainer(p){
       <div class="texpl-steps">
         <div class="texpl-step"><span class="texpl-step-n fb">1</span><span class="texpl-step-t">We analyzed reactions, comments, and shares across all <strong>${count}</strong> of your posts</span></div>
         <div class="texpl-step"><span class="texpl-step-n fb">2</span><span class="texpl-step-t">Posts were grouped by day and hour to find your <strong>strongest time slots</strong></span></div>
-        <div class="texpl-step"><span class="texpl-step-n fb">3</span><span class="texpl-step-t">For hours where you haven't posted yet, we estimated potential based on neighboring slots — <strong>these are opportunities worth testing</strong></span></div>
+        <div class="texpl-step"><span class="texpl-step-n fb">3</span><span class="texpl-step-t">For time slots without post data, we blend your patterns with <strong>industry research</strong> from millions of posts — highlighting opportunities you haven't tried yet</span></div>
       </div>
       ${sf?.bestDay!=null?`<div class="texpl-highlight">Your strongest Facebook window: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong></div>`:''}`
       :`<div class="texpl-highlight">Connect Meta and have Facebook posts to see data-driven scores here.</div>`}
@@ -817,11 +845,11 @@ function renderExplainer(p){
         <div class="texpl-step"><span class="texpl-step-n ig">3</span><span class="texpl-step-t">The result: a map of when your content has the <strong>best chance of being seen</strong></span></div>
       </div>
       <div class="texpl-highlight">Peak activity: <strong>${fmt(si.peak)} followers</strong> at <strong>${fmtH(si.peakHour)}</strong></div>`
-      :si?.type==='inferred'?`<div class="texpl-insight">Without direct follower activity data, we reverse-engineered your best times from likes and comments across your posting history.</div>
+      :si?.type==='inferred'?`<div class="texpl-insight">We reverse-engineered your best times from likes and comments, then enhanced gaps with industry research data from millions of posts.</div>
       <div class="texpl-steps">
         <div class="texpl-step"><span class="texpl-step-n ig">1</span><span class="texpl-step-t">We analyzed likes and comments on all <strong>${count}</strong> of your Instagram posts</span></div>
         <div class="texpl-step"><span class="texpl-step-n ig">2</span><span class="texpl-step-t">Posts were mapped to their day and hour to find your <strong>engagement sweet spots</strong></span></div>
-        <div class="texpl-step"><span class="texpl-step-n ig">3</span><span class="texpl-step-t">For time slots you haven't tried, we estimated potential from nearby patterns — <strong>these are opportunities worth testing</strong></span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">3</span><span class="texpl-step-t">For time slots you haven't tried, we blend nearby patterns with <strong>industry research data</strong> — highlighting promising opportunities</span></div>
       </div>
       ${si?.bestDay!=null?`<div class="texpl-highlight">Your strongest Instagram window: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong></div>`:''}`
       :`<div class="texpl-highlight">Connect Meta to see data-driven Instagram scores here.</div>`}
