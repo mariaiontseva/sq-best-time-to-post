@@ -714,11 +714,26 @@ function computeFB(){
 }
 
 function computeLI(){
+  // Based on Sprout Social (2.7B engagements, 436K profiles, 2025)
+  // and Buffer (1M+ posts, 2025) research data
   const grid=Array.from({length:7},()=>new Float64Array(24));
+  // Hourly base scores (UTC) from aggregated research
+  const hourScore=[
+    0.05,0.05,0.05,0.05,0.10,0.10,0.15, // 0-6: night/early
+    0.40,                                  // 7: start of business
+    0.75,0.80,                             // 8-9: morning ramp
+    1.00,1.00,                             // 10-11: peak (Buffer/Sprout)
+    0.85,                                  // 12: lunch peak
+    0.65,0.55,                             // 13-14: afternoon
+    0.40,0.30,                             // 15-16: declining
+    0.20,0.15,                             // 17-18: end of day (NOT a peak)
+    0.10,0.10,                             // 19-20: evening
+    0.05,0.05,0.05                         // 21-23: night
+  ];
+  // Day multipliers: Mon=0, Tue=1, Wed=2, Thu=3, Fri=4, Sat=5, Sun=6
+  const dayMul=[0.80,1.00,1.00,1.00,0.75,0.20,0.15];
   for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-    if(d>=5){grid[d][h]=0.15;continue}
-    if((h>=7&&h<=8)||h===12||(h>=17&&h<=18))grid[d][h]=1;else if(h>=9&&h<=16)grid[d][h]=0.65;else grid[d][h]=0.2;
-    if(d>=1&&d<=3)grid[d][h]*=1;else grid[d][h]*=0.85;
+    grid[d][h]=hourScore[h]*dayMul[d];
   }
   signalInfo.li={type:'industry',weight:0.10};
   return grid;
@@ -923,7 +938,7 @@ function buildMethodology(){
     g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'From '+sf.postCount+' posts':'No data'}</span></div>`;
   }
   if(state.li){
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}% weight)</h4><p><strong>Industry benchmarks only</strong> — LinkedIn API has no "followers online" endpoint. Using B2B research data: peak engagement <strong>Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</strong>. Weekends scored at 15%.</p><span class="mc-tag industry">Industry benchmarks</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}% weight)</h4><p><strong>Industry data</strong> — LinkedIn API has no "followers online" endpoint. Scores based on aggregated research (2.7B engagements across 436K profiles). Peak: <strong>Tue–Thu, 10–11 AM</strong>. Secondary: 8–9 AM, 12 PM. Weekends 15–20%. Note: not adjusted for your audience timezone or industry.</p><span class="mc-tag industry">Industry data (2025)</span></div>`;
   }
 }
 
