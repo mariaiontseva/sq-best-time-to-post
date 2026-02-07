@@ -172,6 +172,8 @@
     <div class="divider"></div>
     <div class="dot off" id="dot-li"></div>
     <span class="dot-label" id="lbl-li">LinkedIn: not connected</span>
+    <div class="divider"></div>
+    <button onclick="resetMeta()" style="font-size:11px;background:none;border:1px solid var(--g300);border-radius:4px;padding:3px 8px;cursor:pointer;color:var(--g500);font-family:inherit;">Reset Meta</button>
   </div>
 </div>
 
@@ -340,6 +342,17 @@ function connectMeta() {
       console.warn('FB login response:', response);
     }
   }, opts);
+}
+
+function resetMeta() {
+  if (!window.FB) return;
+  // Revoke all permissions and logout
+  FB.api('/me/permissions', 'DELETE', function() {
+    FB.logout(function() {
+      alert('Permissions reset! Now click Connect again.');
+      location.reload();
+    });
+  });
 }
 
 async function gql(path, token) {
