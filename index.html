@@ -650,31 +650,31 @@ function computeIG(){
       grid[ds][hs]=Math.max(0,Math.min(1,(v-mn)/range));
       filled.add(k);
     }
-    // Interpolate gaps: use neighbor avg + general IG patterns as base
+    // Interpolate gaps: ONLY from neighbor data, no made-up patterns
     for(let d=0;d<7;d++)for(let h=0;h<24;h++){
       if(filled.has(d+'-'+h))continue;
       const nb=[];
+      // Adjacent hours same day
       if(filled.has(d+'-'+(h-1)))nb.push(grid[d][h-1]);
       if(filled.has(d+'-'+(h+1)))nb.push(grid[d][h+1]);
+      // Same hour adjacent days
       if(filled.has(((d+6)%7)+'-'+h))nb.push(grid[(d+6)%7][h]);
       if(filled.has(((d+1)%7)+'-'+h))nb.push(grid[(d+1)%7][h]);
-      // General IG pattern as base
-      let base=0.3;
-      if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))base=0.8;
-      else if(h>=10&&h<=18)base=0.5;
-      if(d>=5)base*=0.85;
-      grid[d][h]=nb.length>0?(nb.reduce((a,b)=>a+b,0)/nb.length)*0.6+base*0.4:base;
+      // 2 hours away same day
+      if(filled.has(d+'-'+(h-2)))nb.push(grid[d][h-2]);
+      if(filled.has(d+'-'+(h+2)))nb.push(grid[d][h+2]);
+      // Use neighbor average if available, otherwise neutral 0.5 (= "we don't know")
+      grid[d][h]=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0.5;
     }
+    const coverage=Math.round(filled.size/(7*24)*100);
     // Find best slot
     let bD=0,bH=0,bV=0;
     for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(grid[d][h]>bV){bV=grid[d][h];bD=d;bH=h}
-    signalInfo.ig={type:'inferred',postCount:posts.length,bestDay:bD,bestHour:bH,weight:0.45};
+    signalInfo.ig={type:'inferred',postCount:posts.length,coverage,bestDay:bD,bestHour:bH,weight:0.45};
   }else{
-    // FALLBACK: no data at all — generic patterns
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-      let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
-    }
-    signalInfo.ig={type:'fallback',postCount:0,weight:0.20};
+    // FALLBACK: no data at all — flat 0.5 everywhere (= "we don't know")
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=0.5;
+    signalInfo.ig={type:'fallback',postCount:0,coverage:0,weight:0.10};
   }
   return grid;
 }
@@ -706,8 +706,9 @@ function computeFB(){
     let bD=0,bH=0,bV=0;for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(grid[d][h]>bV){bV=grid[d][h];bD=d;bH=h}
     signalInfo.fb={type:'real',postCount:pc,bestDay:bD,bestHour:bH,weight:0.35};
   }else{
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++){let s=0.3;if((h>=9&&h<=11)||(h>=13&&h<=15))s=1;else if(h>=7&&h<=19)s=0.6;if(d>=5)s*=0.8;grid[d][h]=s}
-    signalInfo.fb={type:'fallback',weight:0.15};
+    // No FB data — flat 0.5 (= "we don't know"), low weight
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=0.5;
+    signalInfo.fb={type:'fallback',weight:0.10};
   }
   return grid;
 }
@@ -903,11 +904,11 @@ function buildMethodology(){
       desc=`<strong>Signal 1 — Online followers (80%):</strong> Hour-by-hour counts of when your ${fmt(si.peak)} followers are online. Peak at <strong>${fmtH(si.peakHour)}</strong>.<br><strong>Signal 2 — Post engagement (20%):</strong> Avg likes+comments per day from <strong>${igPosts} posts</strong>.`;
       tagClass='real';tagText='Real-time data';
     }else if(si.type==='inferred'){
-      desc=`<strong>Signal — Post engagement by hour:</strong> From your <strong>${igPosts} IG posts</strong>, we compute avg likes+comments for each (day, hour) slot. Best: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong>. Hours without posts interpolated from neighbors (60%) + general IG patterns (40%).<br><em>online_followers API unavailable — using post history instead.</em>`;
-      tagClass='inferred';tagText='Inferred from posts';
+      desc=`<strong>Signal — Post engagement by hour:</strong> From your <strong>${igPosts} IG posts</strong>, we compute avg likes+comments for each (day, hour) slot. Best: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong>.<br><strong>Coverage: ${si.coverage||0}%</strong> of the 168-hour week has real data. Gaps filled by averaging neighboring slots only — no made-up patterns.<br><em>online_followers API unavailable — using post history instead.</em>`;
+      tagClass='inferred';tagText='Inferred from '+igPosts+' posts';
     }else{
-      desc=`<strong>No IG data available</strong> — no posts and no online_followers data. Using general patterns: peaks at 7–9 AM, 12–1 PM, 7–9 PM.`;
-      tagClass='industry';tagText='Generic patterns';
+      desc=`<strong>No IG data available</strong> — no posts and no online_followers data. All hours scored equally (0.5). This platform has minimal influence on the combined score (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}%).`;
+      tagClass='industry';tagText='No data';
     }
     g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${tagClass}">${tagText}</span></div>`;
   }
@@ -917,9 +918,9 @@ function buildMethodology(){
     if(sf.type==='real'){
       desc=`<strong>Signal — Post engagement by hour:</strong> From your last <strong>${sf.postCount} FB posts</strong>, we compute average engagement (reactions + comments + shares) for each (day, hour) slot. Best: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong>. Hours with no posts use neighbor interpolation + IG data as proxy.`;
     }else{
-      desc=`<strong>No FB post data available</strong>. Using general patterns: peaks at 9–11 AM, 1–3 PM, lower on weekends. Meta deprecated real-time audience data (page_fans_online) in Sep 2024.`;
+      desc=`<strong>No FB post data available</strong>. All hours scored equally (0.5) — no influence on recommendations. Meta deprecated page_fans_online in Sep 2024.`;
     }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'Inferred from post history':'General patterns'}</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'From '+sf.postCount+' posts':'No data'}</span></div>`;
   }
   if(state.li){
     g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}% weight)</h4><p><strong>Industry benchmarks only</strong> — LinkedIn API has no "followers online" endpoint. Using B2B research data: peak engagement <strong>Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</strong>. Weekends scored at 15%.</p><span class="mc-tag industry">Industry benchmarks</span></div>`;
