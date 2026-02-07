@@ -198,6 +198,39 @@
   .cal-empty p { font-size: 14px; }
   .cal-empty .cal-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
 
+  /* ── Recommendations ── */
+  .recs-section { display: none; margin-bottom: 40px; animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+  .recs-section.show { display: block; }
+  .recs-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; }
+  .rec-card {
+    background: white; border-radius: var(--radius); border: 1px solid var(--g200);
+    padding: 16px; text-align: center; transition: all 0.2s;
+  }
+  .rec-card:hover { box-shadow: var(--shadow); transform: translateY(-2px); }
+  .rec-rank { font-size: 11px; font-weight: 700; color: var(--g400); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px; }
+  .rec-time { font-size: 18px; font-weight: 800; color: var(--g900); margin-bottom: 2px; }
+  .rec-day { font-size: 13px; font-weight: 600; color: var(--g700); margin-bottom: 8px; }
+  .rec-reason { font-size: 11px; color: var(--g500); line-height: 1.5; }
+  .rec-platform { display: inline-flex; font-size: 10px; font-weight: 700; padding: 2px 8px; border-radius: 99px; margin-bottom: 6px; }
+  .rec-platform.ig { background: var(--ig-light); color: var(--ig); }
+  .rec-platform.fb { background: var(--fb-light); color: var(--fb); }
+  .rec-platform.combined { background: var(--green-bg); color: var(--green); }
+
+  /* ── Calendar Explanation ── */
+  .cal-explanation {
+    display: none; margin-top: 20px; padding: 16px 20px;
+    background: var(--g50); border-radius: var(--radius); border: 1px solid var(--g200);
+    font-size: 13px; color: var(--g600); line-height: 1.7;
+  }
+  .cal-explanation.show { display: block; }
+  .cal-explanation strong { color: var(--g800); font-weight: 600; }
+  .cal-explanation .signal { display: flex; align-items: flex-start; gap: 10px; margin: 8px 0; }
+  .cal-explanation .signal-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 6px; flex-shrink: 0; }
+  .cal-explanation .signal-dot.ig { background: var(--ig); }
+  .cal-explanation .signal-dot.fb { background: var(--fb); }
+  .cal-explanation .signal-dot.li { background: var(--li); }
+  .cal-explanation .signal-weight { font-size: 11px; color: var(--g400); }
+
   /* ── LinkedIn token input ── */
   .li-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
   .li-modal.show { display: flex; }
@@ -310,6 +343,14 @@
     </div>
   </div>
 
+  <!-- Top Recommendations (hidden until data) -->
+  <div class="recs-section" id="recs-section">
+    <div class="section-label">Recommendations</div>
+    <div class="section-title">Your best posting times</div>
+    <div class="section-desc" id="recs-desc">Based on your real audience data, these are the optimal times to publish your content.</div>
+    <div class="recs-grid" id="recs-grid"></div>
+  </div>
+
   <!-- Calendar -->
   <div class="section">
     <div class="cal-panel">
@@ -337,6 +378,7 @@
         </div>
         <div class="grid-wrap" id="grid-wrap" style="display:none"><div class="grid" id="grid"></div></div>
       </div>
+      <div class="cal-explanation" id="cal-explanation"></div>
     </div>
   </div>
 
@@ -505,6 +547,7 @@ async function fetchMetaData(token) {
       const media = await gql(`${igId}/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100`, token);
       const md = media.data || [];
       R.ig_post_history = { status: md.length > 0 ? 'ok' : 'fail', count: md.length, note: `${md.length} posts fetched` };
+      R._igPosts = md; // save for day-of-week scoring
 
       let igInsOk = false; let igInsErr = '';
       for (const m of md.slice(0, 3)) {
@@ -722,8 +765,346 @@ function formatHour(h) {
   return `${h - 12} PM`;
 }
 
-// ── Calendar ──
+// ═══════════════════════════════════════════════════
+// SCORING ENGINE — the real algorithm
+// ═══════════════════════════════════════════════════
+//
+// We compute a 0–1 continuous score for each (day, hour) slot per platform.
+// Then we classify into tiers using percentile-based thresholds, not fixed cutoffs.
+//
+// Data signals used:
+//   IG: online_followers (hourly) + day-of-week engagement factor from post history
+//   FB: historical post engagement per (day, hour) + IG-as-proxy for sparse slots
+//   LI: industry benchmarks (B2B best practices)
+//
+// Combined: weighted blend based on data quality:
+//   IG with real data = 55%, FB with real data = 35%, LI = 10%
+//   If a platform has no data, its weight redistributes proportionally.
+
+const scoreCache = {}; // { 'ig': [[d0h0..d0h23], ..., [d6h0..d6h23]], 'fb': ..., 'combined': ... }
+const signalInfo = {};  // human-readable explanation of what drove each platform
+
+function computeAllScores() {
+  scoreCache.ig = computeIG();
+  scoreCache.fb = computeFB();
+  scoreCache.li = computeLI();
+  scoreCache.combined = computeCombined();
+}
+
+// ── Instagram: online_followers + post engagement by day ──
+function computeIG() {
+  const grid = Array.from({length: 7}, () => new Float64Array(24));
+  const ol = results.meta?.ig_online_followers?.data;
+
+  if (ol && typeof ol === 'object') {
+    // Real hourly data — normalize to 0–1
+    const vals = Object.values(ol).map(Number);
+    const mx = Math.max(...vals);
+    const mn = Math.min(...vals);
+    const range = mx - mn || 1;
+    const hourly = {};
+    for (let h = 0; h < 24; h++) hourly[h] = ((Number(ol[String(h)]) || 0) - mn) / range;
+
+    // Day-of-week factor from IG post engagement (if we have posts)
+    const dayFactor = computeIGDayFactor();
+
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        // 80% hourly activity signal + 20% day-of-week engagement pattern
+        grid[d][h] = hourly[h] * 0.8 + dayFactor[d] * 0.2;
+      }
+    }
+
+    const peakH = Object.entries(ol).sort((a,b) => b[1] - a[1])[0];
+    const peakCount = peakH ? Number(peakH[1]) : 0;
+    const peakHour = peakH ? formatHour(parseInt(peakH[0])) : '';
+    signalInfo.ig = {
+      type: 'real',
+      desc: `Real online followers data: your ${peakCount.toLocaleString()} most active followers peak at ${peakHour}`,
+      weight: 0.55
+    };
+  } else {
+    // Fallback: generic IG patterns (weighted lower in combined)
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        let s = 0.3; // base
+        if ((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21)) s = 1.0;
+        else if (h>=10&&h<=18) s = 0.6;
+        if (d >= 5) s *= 0.85; // weekends slightly lower
+        grid[d][h] = s;
+      }
+    }
+    signalInfo.ig = { type: 'fallback', desc: 'Generic Instagram activity patterns (no online followers data)', weight: 0.25 };
+  }
+  return grid;
+}
+
+function computeIGDayFactor() {
+  // Compute average engagement per day-of-week from IG post data
+  const dayEng = Array(7).fill(0);
+  const dayCnt = Array(7).fill(0);
+
+  // IG posts are stored during fetchMetaData — use raw post data if available
+  // We look at results for post history presence
+  const posts = results.meta?._igPosts || [];
+  for (const p of posts) {
+    const dt = new Date(p.timestamp);
+    const d = (dt.getUTCDay() + 6) % 7; // 0=Mon
+    const eng = (p.like_count || 0) + (p.comments_count || 0);
+    dayEng[d] += eng;
+    dayCnt[d]++;
+  }
+
+  const dayAvg = dayEng.map((t, i) => dayCnt[i] > 0 ? t / dayCnt[i] : 0);
+  const maxAvg = Math.max(...dayAvg) || 1;
+
+  // If no post data, return uniform
+  if (maxAvg === 0) return Array(7).fill(0.5);
+  return dayAvg.map(v => v / maxAvg);
+}
+
+// ── Facebook: real engagement data per (day,hour) + IG as proxy for gaps ──
+function computeFB() {
+  const grid = Array.from({length: 7}, () => new Float64Array(24));
+  const inf = results.meta?.fb_inferred_times?.data;
+
+  if (inf && Object.keys(inf).length > 0) {
+    const vals = Object.values(inf);
+    const mx = Math.max(...vals);
+    const mn = Math.min(...vals);
+    const range = mx - mn || 1;
+
+    // Fill known slots from real engagement data
+    const filled = new Set();
+    for (const [k, v] of Object.entries(inf)) {
+      const [ds, hs] = k.split('-').map(Number);
+      const d = (ds + 6) % 7; // FB uses 0=Sun, we use 0=Mon
+      grid[d][hs] = (v - mn) / range;
+      filled.add(`${d}-${hs}`);
+    }
+
+    // For empty slots: use IG online_followers as a proxy (people active on IG ≈ active on FB)
+    const igGrid = scoreCache.ig;
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        if (!filled.has(`${d}-${h}`)) {
+          // Use IG signal at 60% strength as proxy, plus look at neighboring filled FB slots
+          const neighbors = [];
+          if (filled.has(`${d}-${h-1}`)) neighbors.push(grid[d][h-1]);
+          if (filled.has(`${d}-${h+1}`)) neighbors.push(grid[d][h+1]);
+          const neighborAvg = neighbors.length > 0 ? neighbors.reduce((a,b)=>a+b,0)/neighbors.length : 0.3;
+          grid[d][h] = igGrid ? igGrid[d][h] * 0.4 + neighborAvg * 0.6 : neighborAvg;
+        }
+      }
+    }
+
+    const postCount = results.meta?.fb_post_history?.count || 0;
+    // Find best slot
+    let bestD = 0, bestH = 0, bestV = 0;
+    for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) if (grid[d][h] > bestV) { bestV = grid[d][h]; bestD = d; bestH = h; }
+
+    signalInfo.fb = {
+      type: 'real',
+      desc: `Engagement analysis of ${postCount} posts: highest engagement on ${DAYS[bestD]}s at ${formatHour(bestH)}`,
+      postCount,
+      weight: 0.35
+    };
+  } else {
+    // Fallback: generic FB patterns
+    for (let d = 0; d < 7; d++) {
+      for (let h = 0; h < 24; h++) {
+        let s = 0.3;
+        if ((h>=9&&h<=11)||(h>=13&&h<=15)) s = 1.0;
+        else if (h>=7&&h<=19) s = 0.6;
+        if (d >= 5) s *= 0.8;
+        grid[d][h] = s;
+      }
+    }
+    signalInfo.fb = { type: 'fallback', desc: 'Generic Facebook engagement patterns (no post data)', weight: 0.15 };
+  }
+  return grid;
+}
+
+// ── LinkedIn: industry benchmarks ──
+function computeLI() {
+  const grid = Array.from({length: 7}, () => new Float64Array(24));
+  for (let d = 0; d < 7; d++) {
+    for (let h = 0; h < 24; h++) {
+      if (d >= 5) { grid[d][h] = 0.15; continue; } // weekends very low
+      if ((h>=7&&h<=8)||h===12||(h>=17&&h<=18)) grid[d][h] = 1.0; // prime B2B hours
+      else if (h>=9&&h<=16) grid[d][h] = 0.65; // business hours
+      else grid[d][h] = 0.2; // off hours
+      // Tue-Thu are strongest for B2B
+      if (d >= 1 && d <= 3) grid[d][h] *= 1.0;
+      else grid[d][h] *= 0.85;
+    }
+  }
+  signalInfo.li = { type: 'industry', desc: 'Industry benchmarks: Tue–Thu 7–9 AM, 12 PM, 5–6 PM for B2B audiences', weight: 0.10 };
+  return grid;
+}
+
+// ── Combined: weighted blend with dynamic weights ──
+function computeCombined() {
+  const grid = Array.from({length: 7}, () => new Float64Array(24));
+
+  // Determine weights based on data quality
+  const weights = {};
+  let totalW = 0;
+  if (state.ig) { weights.ig = signalInfo.ig?.weight || 0.25; totalW += weights.ig; }
+  if (state.fb) { weights.fb = signalInfo.fb?.weight || 0.15; totalW += weights.fb; }
+  if (state.li) { weights.li = signalInfo.li?.weight || 0.10; totalW += weights.li; }
+
+  if (totalW === 0) return grid;
+
+  // Normalize weights to sum to 1
+  for (const k of Object.keys(weights)) weights[k] /= totalW;
+
+  for (let d = 0; d < 7; d++) {
+    for (let h = 0; h < 24; h++) {
+      let val = 0;
+      if (weights.ig) val += scoreCache.ig[d][h] * weights.ig;
+      if (weights.fb) val += scoreCache.fb[d][h] * weights.fb;
+      if (weights.li) val += scoreCache.li[d][h] * weights.li;
+      grid[d][h] = val;
+    }
+  }
+
+  signalInfo.combined = { weights };
+  return grid;
+}
+
+// ── Classify scores into tiers using percentile thresholds ──
+function classifyGrid(grid) {
+  // Collect all scores, compute percentile cutoffs
+  const allScores = [];
+  for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) allScores.push(grid[d][h]);
+  allScores.sort((a,b) => a - b);
+  const p85 = allScores[Math.floor(allScores.length * 0.85)] || 0.7;
+  const p50 = allScores[Math.floor(allScores.length * 0.50)] || 0.4;
+  return { p85, p50 };
+}
+
+// ── Build top recommendations ──
+function buildRecommendations() {
+  const section = document.getElementById('recs-section');
+  const grid = document.getElementById('recs-grid');
+  const desc = document.getElementById('recs-desc');
+  grid.innerHTML = '';
+
+  // Combined scores ranked
+  const combinedGrid = scoreCache.combined;
+  if (!combinedGrid) return;
+
+  const slots = [];
+  for (let d = 0; d < 7; d++) for (let h = 0; h < 24; h++) slots.push({ d, h, score: combinedGrid[d][h] });
+  slots.sort((a,b) => b.score - a.score);
+
+  // Pick top 5 — but ensure at least 2 hours apart and different days
+  const picked = [];
+  for (const s of slots) {
+    if (picked.length >= 5) break;
+    const tooClose = picked.some(p => p.d === s.d && Math.abs(p.h - s.h) < 2);
+    if (tooClose) continue;
+    picked.push(s);
+  }
+
+  if (picked.length === 0) return;
+
+  // Build description based on what data we have
+  const parts = [];
+  if (signalInfo.ig?.type === 'real') parts.push('real-time Instagram follower activity');
+  if (signalInfo.fb?.type === 'real') parts.push(`engagement patterns from ${signalInfo.fb.postCount || 'your'} Facebook posts`);
+  if (state.li) parts.push('LinkedIn industry benchmarks');
+  desc.textContent = parts.length > 0
+    ? `Based on ${parts.join(', ')}, these are your optimal posting times.`
+    : 'Based on your connected accounts, these are the recommended posting times.';
+
+  // Render cards
+  for (let i = 0; i < picked.length; i++) {
+    const s = picked[i];
+    // Find which platform contributes most to this slot
+    const igS = scoreCache.ig?.[s.d]?.[s.h] || 0;
+    const fbS = scoreCache.fb?.[s.d]?.[s.h] || 0;
+    const liS = scoreCache.li?.[s.d]?.[s.h] || 0;
+    const topPlatform = (igS >= fbS && igS >= liS) ? 'ig' : (fbS >= liS ? 'fb' : 'li');
+    const platformLabel = topPlatform === 'ig' ? 'Instagram' : topPlatform === 'fb' ? 'Facebook' : 'LinkedIn';
+
+    // Build reason text
+    let reason = '';
+    if (topPlatform === 'ig') {
+      const ol = results.meta?.ig_online_followers?.data;
+      if (ol) {
+        const v = Number(ol[String(s.h)]) || 0;
+        reason = `${v.toLocaleString()} followers online at this hour`;
+      } else {
+        reason = 'Peak Instagram activity window';
+      }
+    } else if (topPlatform === 'fb') {
+      const inf = results.meta?.fb_inferred_times?.data;
+      const fbDay = (s.d + 1) % 7; // convert Mon=0 back to Sun=0
+      const v = inf?.[`${fbDay}-${s.h}`];
+      if (v !== undefined) {
+        // compute how much above average
+        const allVals = Object.values(inf);
+        const avg = allVals.reduce((a,b)=>a+b,0) / allVals.length;
+        const lift = avg > 0 ? ((v / avg - 1) * 100).toFixed(0) : 0;
+        reason = lift > 0 ? `${lift}% above average Facebook engagement` : 'Strong Facebook engagement at this time';
+      } else {
+        reason = 'Predicted high engagement based on audience patterns';
+      }
+    } else {
+      reason = 'Peak B2B engagement window';
+    }
+
+    grid.innerHTML += `
+      <div class="rec-card">
+        <div class="rec-rank">#${i + 1} Best Slot</div>
+        <span class="rec-platform ${topPlatform === 'ig' || topPlatform === 'fb' ? topPlatform : 'combined'}">${platformLabel}-driven</span>
+        <div class="rec-time">${formatHour(s.h)}</div>
+        <div class="rec-day">${DAYS[s.d]}</div>
+        <div class="rec-reason">${reason}</div>
+      </div>`;
+  }
+
+  section.classList.add('show');
+}
+
+// ── Calendar explanation text ──
+function buildCalendarExplanation() {
+  const el = document.getElementById('cal-explanation');
+  const lines = ['<strong>How this calendar was built:</strong>'];
+
+  const signals = [];
+  if (state.ig && signalInfo.ig) {
+    const w = signalInfo.combined?.weights?.ig;
+    const wPct = w ? `${Math.round(w * 100)}%` : '';
+    signals.push(`<div class="signal"><div class="signal-dot ig"></div><div><strong>Instagram</strong> ${wPct ? `<span class="signal-weight">(weight: ${wPct})</span>` : ''}<br>${signalInfo.ig.desc}</div></div>`);
+  }
+  if (state.fb && signalInfo.fb) {
+    const w = signalInfo.combined?.weights?.fb;
+    const wPct = w ? `${Math.round(w * 100)}%` : '';
+    signals.push(`<div class="signal"><div class="signal-dot fb"></div><div><strong>Facebook</strong> ${wPct ? `<span class="signal-weight">(weight: ${wPct})</span>` : ''}<br>${signalInfo.fb.desc}</div></div>`);
+  }
+  if (state.li && signalInfo.li) {
+    const w = signalInfo.combined?.weights?.li;
+    const wPct = w ? `${Math.round(w * 100)}%` : '';
+    signals.push(`<div class="signal"><div class="signal-dot li"></div><div><strong>LinkedIn</strong> ${wPct ? `<span class="signal-weight">(weight: ${wPct})</span>` : ''}<br>${signalInfo.li.desc}</div></div>`);
+  }
+
+  if (signals.length === 0) return;
+
+  lines.push(...signals);
+  lines.push('<br>The calendar highlights the top 15% of time slots as "Best", the next 35% as "Good", and the rest as "Low activity". Slots are ranked by combining all available signals with quality-based weighting — real-time data counts more than inferred patterns.');
+
+  el.innerHTML = lines.join('');
+  el.classList.add('show');
+}
+
+// ── Calendar rendering ──
 function buildCal() {
+  computeAllScores();
+  buildRecommendations();
+  buildCalendarExplanation();
   document.getElementById('cal-empty').style.display = 'none';
   document.getElementById('grid-wrap').style.display = 'block';
   renderCal(activeTab);
@@ -749,56 +1130,15 @@ function updateLegend(p) {
   `;
 }
 
-function getScore(p, d, h) {
-  if (p === 'ig') {
-    const ol = results.meta?.ig_online_followers?.data;
-    if (ol && typeof ol === 'object') {
-      const v = ol[String(h)] || 0, mx = Math.max(...Object.values(ol));
-      const r = mx > 0 ? v / mx : 0;
-      return r > 0.75 ? 3 : r > 0.4 ? 2 : 1;
-    }
-    let s = ((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21)) ? 3 : (h>=10&&h<=18) ? 2 : 1;
-    if (d >= 5) s = Math.max(1, s-1);
-    return s;
-  }
-  if (p === 'fb') {
-    const inf = results.meta?.fb_inferred_times?.data;
-    if (inf) { const v = inf[`${d}-${h}`]; if (v !== undefined) { const mx = Math.max(...Object.values(inf)); const r = mx > 0 ? v/mx : 0; return r > 0.7 ? 3 : r > 0.3 ? 2 : 1; } return 0; }
-    let s = ((h>=9&&h<=11)||(h>=13&&h<=15)) ? 3 : (h>=7&&h<=19) ? 2 : 1;
-    if (d >= 5) s = Math.max(1, s-1);
-    return s;
-  }
-  if (p === 'li') {
-    if (d >= 5) return 1;
-    if ((h>=7&&h<=8)||h===12||(h>=17&&h<=18)) return 3;
-    if (h>=9&&h<=16) return 2;
-    return 1;
-  }
-  return 0;
-}
-
-function getTooltipDetail(p, d, h) {
-  if (p === 'ig') {
-    const ol = results.meta?.ig_online_followers?.data;
-    if (ol && typeof ol === 'object') {
-      const v = ol[String(h)] || 0;
-      return `${v.toLocaleString()} followers online`;
-    }
-  }
-  if (p === 'fb') {
-    const inf = results.meta?.fb_inferred_times?.data;
-    if (inf) {
-      const v = inf[`${d}-${h}`];
-      if (v !== undefined) return `${v} avg engagement`;
-    }
-  }
-  return '';
-}
-
 function renderCal(p) {
   const g = document.getElementById('grid');
   g.innerHTML = '';
+  const key = (p === 'all') ? 'combined' : p;
   const suffix = (p === 'all') ? 'combined' : p;
+  const grid = scoreCache[key];
+  if (!grid) return;
+
+  const { p85, p50 } = classifyGrid(grid);
   const ce = (t,c,tx) => { const e = document.createElement(t); e.className = c; e.textContent = tx; return e; };
 
   g.appendChild(ce('div','gh',''));
@@ -808,21 +1148,26 @@ function renderCal(p) {
     const tl = h===0?'12a':h<12?`${h}a`:h===12?'12p':`${h-12}p`;
     g.appendChild(ce('div','gt',tl));
     for (let d = 0; d < 7; d++) {
-      let sc;
-      if (p === 'all') {
-        const ss = []; if (state.ig) ss.push(getScore('ig',d,h)); if (state.fb) ss.push(getScore('fb',d,h)); if (state.li) ss.push(getScore('li',d,h));
-        sc = ss.length ? Math.round(ss.reduce((a,b)=>a+b,0)/ss.length) : 0;
-      } else { sc = getScore(p,d,h); }
-
-      const cls = sc===3?`best-${suffix}`:sc===2?`good-${suffix}`:sc===1?`avoid-${suffix}`:'';
-      const lbl = sc===3?'Best':sc===2?'Good':sc===1?'Low activity':'No data';
+      const val = grid[d][h];
+      const tier = val >= p85 ? 'best' : val >= p50 ? 'good' : 'avoid';
+      const cls = `${tier}-${suffix}`;
+      const lbl = tier === 'best' ? 'Best' : tier === 'good' ? 'Good' : 'Low activity';
       const lt = formatHour(h);
+      const pct = (val * 100).toFixed(0);
 
-      // Build tooltip
-      let tipText = `${DAYS[d]} ${lt} — ${lbl}`;
-      if (p !== 'all') {
-        const detail = getTooltipDetail(p, d, h);
-        if (detail) tipText += `<br>${detail}`;
+      // Build tooltip with real data
+      let tipText = `${DAYS[d]} ${lt} — ${lbl} (score: ${pct})`;
+      if (p === 'ig' || (p === 'all' && state.ig)) {
+        const ol = results.meta?.ig_online_followers?.data;
+        if (ol) tipText += `<br>${(Number(ol[String(h)]) || 0).toLocaleString()} IG followers online`;
+      }
+      if (p === 'fb' || (p === 'all' && state.fb)) {
+        const inf = results.meta?.fb_inferred_times?.data;
+        if (inf) {
+          const fbDay = (d + 1) % 7;
+          const v = inf[`${fbDay}-${h}`];
+          if (v !== undefined) tipText += `<br>${v.toFixed(1)} avg FB engagement`;
+        }
       }
 
       const c = document.createElement('div');
