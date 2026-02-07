@@ -7,7 +7,7 @@ import https from 'https';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
 const PORT = process.env.PORT || 3847;
-const BASE = `http://localhost:${PORT}`;
+const BASE = process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : `http://localhost:${PORT}`;
 
 app.use(express.static(__dirname));
 app.use(express.json());
