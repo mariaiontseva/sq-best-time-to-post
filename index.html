@@ -606,39 +606,82 @@ function computeIG(){
   const grid=Array.from({length:7},()=>new Float64Array(24));
   const ol=results.meta?.ig_online_followers?.data;
   const olKeys=ol&&typeof ol==='object'?Object.keys(ol):[];
+  const posts=results.meta?._igPosts||[];
+
   if(ol&&olKeys.length>0){
+    // BEST: real online_followers hourly data
     const vals=Object.values(ol).map(Number).filter(v=>!isNaN(v));
-    if(vals.length===0){
-      // All values are NaN or empty — use fallback
-      for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-        let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
+    if(vals.length>0){
+      const mx=Math.max(...vals),mn=Math.min(...vals),range=(mx-mn)||1;
+      const hourly={};
+      for(let h=0;h<24;h++){
+        const raw=Number(ol[String(h)])||0;
+        hourly[h]=Math.max(0,Math.min(1,(raw-mn)/range));
       }
-      signalInfo.ig={type:'fallback',weight:0.30};
+      const dayF=computeIGDayFactor(posts);
+      for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=hourly[h]*0.8+dayF[d]*0.2;
+      const peakH=Object.entries(ol).sort((a,b)=>(Number(b[1])||0)-(Number(a[1])||0))[0];
+      signalInfo.ig={type:'real',peak:peakH?Number(peakH[1])||0:0,peakHour:peakH?parseInt(peakH[0])||0:0,postCount:posts.length,weight:0.60};
       return grid;
     }
-    const mx=Math.max(...vals),mn=Math.min(...vals),range=(mx-mn)||1;
-    const hourly={};
-    for(let h=0;h<24;h++){
-      const raw=Number(ol[String(h)])||0;
-      hourly[h]=Math.max(0,Math.min(1,(raw-mn)/range));
+  }
+
+  if(posts.length>0){
+    // GOOD: no online_followers, but we have post history — infer from engagement
+    const he={};
+    for(const p of posts){
+      const dt=new Date(p.timestamp);
+      const h=dt.getUTCHours(),d=(dt.getUTCDay()+6)%7;
+      const k=d+'-'+h;
+      const eng=(p.like_count||0)+(p.comments_count||0);
+      if(!he[k])he[k]={t:0,c:0};
+      he[k].t+=eng;he[k].c++;
     }
-    const dayF=computeIGDayFactor();
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=hourly[h]*0.8+dayF[d]*0.2;
-    const peakH=Object.entries(ol).sort((a,b)=>(Number(b[1])||0)-(Number(a[1])||0))[0];
-    signalInfo.ig={type:'real',peak:peakH?Number(peakH[1])||0:0,peakHour:peakH?parseInt(peakH[0])||0:0,weight:0.60};
+    // Compute avg engagement per slot
+    const avg={};
+    for(const[k,v]of Object.entries(he))avg[k]=v.t/v.c;
+    const allAvg=Object.values(avg);
+    const mx=Math.max(...allAvg),mn=Math.min(...allAvg),range=(mx-mn)||1;
+
+    // Fill grid from post data
+    const filled=new Set();
+    for(const[k,v]of Object.entries(avg)){
+      const[ds,hs]=k.split('-').map(Number);
+      grid[ds][hs]=Math.max(0,Math.min(1,(v-mn)/range));
+      filled.add(k);
+    }
+    // Interpolate gaps: use neighbor avg + general IG patterns as base
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++){
+      if(filled.has(d+'-'+h))continue;
+      const nb=[];
+      if(filled.has(d+'-'+(h-1)))nb.push(grid[d][h-1]);
+      if(filled.has(d+'-'+(h+1)))nb.push(grid[d][h+1]);
+      if(filled.has(((d+6)%7)+'-'+h))nb.push(grid[(d+6)%7][h]);
+      if(filled.has(((d+1)%7)+'-'+h))nb.push(grid[(d+1)%7][h]);
+      // General IG pattern as base
+      let base=0.3;
+      if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))base=0.8;
+      else if(h>=10&&h<=18)base=0.5;
+      if(d>=5)base*=0.85;
+      grid[d][h]=nb.length>0?(nb.reduce((a,b)=>a+b,0)/nb.length)*0.6+base*0.4:base;
+    }
+    // Find best slot
+    let bD=0,bH=0,bV=0;
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(grid[d][h]>bV){bV=grid[d][h];bD=d;bH=h}
+    signalInfo.ig={type:'inferred',postCount:posts.length,bestDay:bD,bestHour:bH,weight:0.45};
   }else{
+    // FALLBACK: no data at all — generic patterns
     for(let d=0;d<7;d++)for(let h=0;h<24;h++){
       let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
     }
-    signalInfo.ig={type:'fallback',weight:0.30};
+    signalInfo.ig={type:'fallback',postCount:0,weight:0.20};
   }
   return grid;
 }
 
-function computeIGDayFactor(){
+function computeIGDayFactor(posts){
+  if(!posts||posts.length===0)return Array(7).fill(0.5);
   const dayEng=Array(7).fill(0),dayCnt=Array(7).fill(0);
-  const posts=results.meta?._igPosts||[];
-  if(posts.length===0)return Array(7).fill(0.5);
   for(const p of posts){const dt=new Date(p.timestamp);const d=(dt.getUTCDay()+6)%7;dayEng[d]+=(p.like_count||0)+(p.comments_count||0);dayCnt[d]++}
   const dayAvg=dayEng.map((t,i)=>dayCnt[i]>0?t/dayCnt[i]:0);
   const maxA=Math.max(...dayAvg);
@@ -710,24 +753,41 @@ function heatColor(val,pal){
 function buildSignalCards(){
   const g=$('sgrid');g.innerHTML='';
   if(state.ig){
-    const ol=results.meta?.ig_online_followers;
-    const hasOL=ol?.data;
     const si=signalInfo.ig;
     const wPct=si?.weight?Math.round(si.weight*100):0;
+    const igPosts=results.meta?.ig_post_history;
+    const badge=si?.type==='real'?'ok':si?.type==='inferred'?'ok':'warn';
+    const badgeText=si?.type==='real'?'✓ Real data':si?.type==='inferred'?'✓ From posts':'⚠ Generic';
+    let sigName,sigVal,sigDesc;
+    if(si?.type==='real'){
+      sigName='Online Followers';
+      sigVal=fmt(si.peak)+' peak';
+      sigDesc='24 hourly data points · Peak at '+fmtH(si.peakHour);
+    }else if(si?.type==='inferred'){
+      sigName='Post Engagement Analysis';
+      sigVal=(si.postCount||0)+' posts';
+      sigDesc='Best engagement: '+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+' · Gaps interpolated';
+    }else{
+      sigName='General Patterns';
+      sigVal='—';
+      sigDesc='No post data — using industry averages';
+    }
     g.innerHTML+=`<div class="sig">
-      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ${hasOL?'ok':'warn'}">${hasOL?'✓ Real data':'⚠ Estimated'}</span></div>
-      <div class="sig-name">Online Followers</div>
-      <div class="sig-val">${hasOL?fmt(si.peak)+' peak':'—'}</div>
-      <div class="sig-desc">${hasOL?'24 hourly data points · Peak at '+fmtH(si.peakHour):'Using general IG activity patterns'}</div>
+      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ${badge}">${badgeText}</span></div>
+      <div class="sig-name">${sigName}</div>
+      <div class="sig-val">${sigVal}</div>
+      <div class="sig-desc">${sigDesc}</div>
       <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:${wPct}%"></div></div><div class="sig-wt-label">${wPct}% of schedule</div></div>
     </div>`;
-    const igPosts=results.meta?.ig_post_history;
-    g.innerHTML+=`<div class="sig">
-      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ${igPosts?.count>0?'ok':'warn'}">${igPosts?.count>0?'✓ Analyzed':'⚠ None'}</span></div>
-      <div class="sig-name">Post History</div>
-      <div class="sig-val">${igPosts?.count||0} posts</div>
-      <div class="sig-desc">Used for day-of-week engagement patterns</div>
-    </div>`;
+    if(si?.type!=='real'&&igPosts?.count>0){
+      const ol=results.meta?.ig_online_followers;
+      g.innerHTML+=`<div class="sig">
+        <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge warn">⚠ Unavailable</span></div>
+        <div class="sig-name">Online Followers</div>
+        <div class="sig-val">—</div>
+        <div class="sig-desc">${ol?.status==='fail'?'API error':'API returned no data'} — using post history instead</div>
+      </div>`;
+    }
   }
   if(state.fb){
     const sf=signalInfo.fb;
@@ -837,15 +897,19 @@ function buildMethodology(){
 
   if(state.ig){
     const si=signalInfo.ig;
-    const igPosts=results.meta?.ig_post_history?.count||0;
-    let desc;
+    const igPosts=si.postCount||0;
+    let desc,tagClass,tagText;
     if(si.type==='real'){
-      desc=`<strong>Signal 1 — Online followers (80% of IG score):</strong> Meta API provides hour-by-hour counts of when your ${fmt(si.peak)} followers are online. Peak at <strong>${fmtH(si.peakHour)}</strong>. We normalize to 0–1 range.<br><strong>Signal 2 — Day-of-week engagement (20% of IG score):</strong> From your <strong>${igPosts} posts</strong>, we compute average likes+comments per day of week.`;
+      desc=`<strong>Signal 1 — Online followers (80%):</strong> Hour-by-hour counts of when your ${fmt(si.peak)} followers are online. Peak at <strong>${fmtH(si.peakHour)}</strong>.<br><strong>Signal 2 — Post engagement (20%):</strong> Avg likes+comments per day from <strong>${igPosts} posts</strong>.`;
+      tagClass='real';tagText='Real-time data';
+    }else if(si.type==='inferred'){
+      desc=`<strong>Signal — Post engagement by hour:</strong> From your <strong>${igPosts} IG posts</strong>, we compute avg likes+comments for each (day, hour) slot. Best: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong>. Hours without posts interpolated from neighbors (60%) + general IG patterns (40%).<br><em>online_followers API unavailable — using post history instead.</em>`;
+      tagClass='inferred';tagText='Inferred from posts';
     }else{
-      desc=`<strong>No personalized IG data available</strong> — online_followers API returned no data. Using general patterns: peaks at 7–9 AM, 12–1 PM, 7–9 PM, slightly lower on weekends.`;
-      if(igPosts>0)desc+=` Day-of-week patterns derived from your <strong>${igPosts} posts</strong>.`;
+      desc=`<strong>No IG data available</strong> — no posts and no online_followers data. Using general patterns: peaks at 7–9 AM, 12–1 PM, 7–9 PM.`;
+      tagClass='industry';tagText='Generic patterns';
     }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${si.type==='real'?'real':'inferred'}">${si.type==='real'?'Real-time data':'General patterns'}</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${tagClass}">${tagText}</span></div>`;
   }
   if(state.fb){
     const sf=signalInfo.fb;
