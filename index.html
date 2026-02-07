@@ -136,13 +136,19 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 /* ── Recs ── */
 .recs{display:none;margin-bottom:20px}
 .recs.show{display:block;animation:fadeUp .3s}
-.rdesc{font-size:12px;color:var(--g500);margin-bottom:10px;line-height:1.5}
-.rgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
-.rec{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px;text-align:center}
-.rec-rank{font-size:9px;font-weight:700;color:var(--g400);letter-spacing:.06em;margin-bottom:6px}
-.rec-time{font-size:20px;font-weight:800;color:var(--g900)}
-.rec-day{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
+.rdesc{font-size:12px;color:var(--g500);margin-bottom:14px;line-height:1.5}
+.rgrid{display:flex;flex-direction:column;gap:10px}
+.rec-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.rec{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px;text-align:center;position:relative}
+.rec-rank{font-size:9px;font-weight:700;color:var(--g400);letter-spacing:.06em;margin-bottom:4px}
+.rec-time{font-size:18px;font-weight:800;color:var(--g900)}
+.rec-day{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:4px}
 .rec-why{font-size:10px;color:var(--g500)}
+.rec.best{background:linear-gradient(135deg,rgba(16,185,129,.06),rgba(16,185,129,.02));border-color:var(--ok);padding:20px}
+.rec.best .rec-rank{font-size:10px;color:var(--ok)}
+.rec.best .rec-time{font-size:28px}
+.rec.best .rec-day{font-size:14px}
+.rec.best .rec-why{font-size:12px;color:var(--g600)}
 
 /* ── Calendar ── */
 .sched{display:none;margin-bottom:24px}
@@ -195,7 +201,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 @media(max-width:768px){
   .topbar{padding:0 12px}.topbar-r{gap:4px}.nbtn{padding:0 8px;font-size:11px;gap:4px}
   .main{padding:16px 12px 60px}.hero h1{font-size:22px}.hero-cta{height:44px;padding:0 24px;font-size:14px;margin-top:14px}
-  .profiles{grid-template-columns:1fr}.rgrid{grid-template-columns:repeat(3,1fr)}
+  .profiles{grid-template-columns:1fr}.rec-row{grid-template-columns:repeat(2,1fr)}
   .chead{flex-direction:column;align-items:flex-start}.ccard{padding:16px}
 }
 </style>
@@ -217,7 +223,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 
 <div class="main">
   <div class="hero" id="hero">
-    <h1>Connect your Instagram or Facebook to discover your best times to post</h1>
+    <h1>Find Your Best Time to Post</h1>
     <button class="hero-cta" id="hero-cta" onclick="connectMeta()">
       <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
       Connect with Meta
@@ -778,37 +784,44 @@ function buildProfileHealth(){
 }
 
 // ── Signal Cards ──
-function buildAdviceTags(){
-  // Generate actionable advice tags based on health data
+function platformTags(platform){
   const tags=[];
-  const igPosts=results.meta?._igPosts||[];
-  const fbPosts=results.meta?._fbPosts||[];
-  const igProf=results.meta?.ig_profile?.data;
-  const fbFans=results.meta?.fb_fan_count||0;
-  // Frequency
-  const allPosts=[...igPosts.map(p=>new Date(p.timestamp).getTime()),...fbPosts.map(p=>new Date(p.created_time).getTime())].sort((a,b)=>a-b);
-  if(allPosts.length>=2){
-    const spanW=(allPosts[allPosts.length-1]-allPosts[0])/(7*24*3600000);
-    const pw=spanW>0?allPosts.length/spanW:allPosts.length;
-    if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
+  if(platform==='ig'){
+    const igPosts=results.meta?._igPosts||[];
+    const igProf=results.meta?.ig_profile?.data;
+    const followers=igProf?.followers_count||0;
+    if(results.meta?.ig_online_followers?.status==='ok')tags.push({c:'green',t:'Live audience data'});
+    if(igPosts.length<20&&igPosts.length>0)tags.push({c:'purple',t:'Recycle best content'});
+    if(followers>0&&followers<500)tags.push({c:'blue',t:'Grow your following'});
+    if(igPosts.length>0&&followers>0){
+      const rate=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0)/igPosts.length/followers*100;
+      if(rate>=3)tags.push({c:'green',t:'Great engagement!'});
+      else if(rate<1)tags.push({c:'amber',t:'Reply to comments'});
+    }
+    if(igPosts.length>=2){
+      const ts=igPosts.map(p=>new Date(p.timestamp).getTime()).sort((a,b)=>a-b);
+      const pw=igPosts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1);
+      if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
+    }
+    tags.push({c:'green',t:'Use recommended times'});
+  }else{
+    const fbPosts=results.meta?._fbPosts||[];
+    const fbFans=results.meta?.fb_fan_count||0;
+    if(fbFans>0&&fbFans<100)tags.push({c:'blue',t:'Promote your page'});
+    if(fbPosts.length<20&&fbPosts.length>0)tags.push({c:'purple',t:'Recycle best content'});
+    if(fbPosts.length>0&&fbFans>0){
+      const rate=fbPosts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0)/fbPosts.length/fbFans*100;
+      if(rate>=1)tags.push({c:'green',t:'Strong engagement!'});
+      else if(rate<0.5)tags.push({c:'amber',t:'Boost engagement'});
+    }
+    if(fbPosts.length>=2){
+      const ts=fbPosts.map(p=>new Date(p.created_time).getTime()).sort((a,b)=>a-b);
+      const pw=fbPosts.length/((ts[ts.length-1]-ts[0])/(7*24*3600000)||1);
+      if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
+    }
+    tags.push({c:'green',t:'Use recommended times'});
+    tags.push({c:'blue',t:'Try new time slots'});
   }
-  // Content volume
-  if(igPosts.length<20&&igPosts.length>0)tags.push({c:'purple',t:'Recycle your best content'});
-  // Audience
-  const followers=igProf?.followers_count||0;
-  if(followers<500&&followers>0)tags.push({c:'blue',t:'Grow your following'});
-  if(fbFans<100&&fbFans>0)tags.push({c:'blue',t:'Promote your page'});
-  // Engagement
-  if(igPosts.length>0&&followers>0){
-    const rate=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0)/igPosts.length/followers*100;
-    if(rate<1)tags.push({c:'amber',t:'Reply to comments'});
-    if(rate>=3)tags.push({c:'green',t:'Great engagement!'});
-  }
-  // Live data
-  if(results.meta?.ig_online_followers?.status==='ok')tags.push({c:'green',t:'Live audience data'});
-  // General
-  tags.push({c:'green',t:'Post at recommended times'});
-  if(igPosts.length>0||fbPosts.length>0)tags.push({c:'blue',t:'Try new time slots'});
   return tags;
 }
 
@@ -826,15 +839,14 @@ function buildSignalCards(){
       meta=si.postCount+' posts analyzed';
       insight='Best engagement: <strong>'+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+'</strong>';
     }
-    g.innerHTML+=`<div class="sig"><div class="sig-icon ig">${igSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Instagram</span><span class="sig-meta">${meta}</span></div><div class="sig-insight">${insight}</div></div></div>`;
+    const igTags=platformTags('ig');
+    g.innerHTML+=`<div class="sig"><div class="sig-icon ig">${igSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Instagram</span><span class="sig-meta">${meta}</span></div><div class="sig-insight">${insight}</div><div class="sig-tags">${igTags.map(t=>`<span class="sig-tag ${t.c}">${t.t}</span>`).join('')}</div></div></div>`;
   }
   if(state.fb&&signalInfo.fb?.type==='real'){
     const sf=signalInfo.fb;
-    g.innerHTML+=`<div class="sig"><div class="sig-icon fb">${fbSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Facebook</span><span class="sig-meta">${sf.postCount} posts analyzed</span></div><div class="sig-insight">Best engagement: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong></div></div></div>`;
+    const fbTags=platformTags('fb');
+    g.innerHTML+=`<div class="sig"><div class="sig-icon fb">${fbSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Facebook</span><span class="sig-meta">${sf.postCount} posts analyzed</span></div><div class="sig-insight">Best engagement: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong></div><div class="sig-tags">${fbTags.map(t=>`<span class="sig-tag ${t.c}">${t.t}</span>`).join('')}</div></div></div>`;
   }
-  // Advice tags
-  const tags=buildAdviceTags();
-  if(tags.length)g.innerHTML+=`<div class="sig-tags">${tags.map(t=>`<span class="sig-tag ${t.c}">${t.t}</span>`).join('')}</div>`;
   if(g.innerHTML)$('sigs').classList.add('show');
 }
 
@@ -862,14 +874,24 @@ function buildRecs(){
   $('rdesc').textContent=desc;
 
   const g=$('rgrid');g.innerHTML='';
-  for(let i=0;i<picked.length;i++){
-    const s=picked[i];
-    // Build combined "why" — show strongest reason from any platform
+  function recWhy(s){
     const whys=[];
     if(state.ig){const ol=results.meta?.ig_online_followers?.data;if(ol&&ol[String(s.h)])whys.push(fmt(ol[String(s.h)])+' followers active')}
     if(state.fb){const inf=results.meta?.fb_inferred_times?.data;if(inf){const fbD=(s.d+1)%7;const v=inf[fbD+'-'+s.h];if(v!=null){const allV=Object.values(inf);const avg=allV.reduce((a,b)=>a+b,0)/allV.length;const lift=avg>0?Math.round((v/avg-1)*100):0;if(lift>0)whys.push(lift+'% above avg engagement')}}}
-    const why=whys.join(' · ')||'High predicted activity';
-    g.innerHTML+=`<div class="rec"><div class="rec-rank">#${i+1}</div><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${why}</div></div>`;
+    return whys.join(' · ')||'High predicted activity';
+  }
+  // #1 — hero card, full width
+  const best=picked[0];
+  g.innerHTML+=`<div class="rec best"><div class="rec-rank">BEST TIME</div><div class="rec-time">${fmtH(best.h)}</div><div class="rec-day">${DAYS[best.d]}</div><div class="rec-why">${recWhy(best)}</div></div>`;
+  // #2-#5 — row
+  if(picked.length>1){
+    let row='<div class="rec-row">';
+    for(let i=1;i<picked.length;i++){
+      const s=picked[i];
+      row+=`<div class="rec"><div class="rec-rank">#${i+1}</div><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${recWhy(s)}</div></div>`;
+    }
+    row+='</div>';
+    g.innerHTML+=row;
   }
   $('recs').classList.add('show');
 }
