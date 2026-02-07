@@ -3,300 +3,354 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Best Time to Post — API Testing Dashboard</title>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<title>Best Time to Post — SmarterQueue</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-    --ig: #E1306C; --fb: #1877F2; --li: #0A66C2;
+    --ig: #E1306C; --ig-light: #fce4ec; --ig-mid: #f48fb1; --ig-best: #e91e63; --ig-good: #f48fb1; --ig-soft: #fce4ec;
+    --fb: #1877F2; --fb-light: #e3f2fd; --fb-mid: #64b5f6; --fb-best: #1565c0; --fb-good: #64b5f6; --fb-soft: #e3f2fd;
+    --li: #0A66C2; --li-light: #e1f0fa;
     --green: #059669; --green-bg: #ecfdf5; --green-border: #a7f3d0;
     --amber: #d97706; --amber-bg: #fffbeb;
     --red: #dc2626; --red-bg: #fef2f2;
-    --blue: #4f46e5; --blue-bg: #eef2ff;
     --g50: #f9fafb; --g100: #f3f4f6; --g200: #e5e7eb; --g300: #d1d5db;
     --g400: #9ca3af; --g500: #6b7280; --g600: #4b5563; --g700: #374151; --g800: #1f2937; --g900: #111827;
-    --radius: 12px;
+    --radius: 12px; --radius-lg: 16px;
     --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
     --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 2px 8px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06);
+    --shadow-lg: 0 8px 24px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.06);
   }
   * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: 'Inter', system-ui, sans-serif; background: #f5f5f7; color: var(--g800); -webkit-font-smoothing: antialiased; }
+  body { font-family: 'Inter', system-ui, sans-serif; background: #f8f9fb; color: var(--g800); -webkit-font-smoothing: antialiased; }
 
-  .topbar { background: white; border-bottom: 1px solid var(--g200); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; }
+  /* ── Topbar ── */
+  .topbar { background: white; border-bottom: 1px solid var(--g200); padding: 0 32px; height: 56px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
   .topbar-left { display: flex; align-items: center; gap: 12px; }
-  .topbar-logo { width: 28px; height: 28px; background: var(--blue); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-  .topbar-logo svg { width: 16px; height: 16px; }
-  .topbar-title { font-size: 14px; font-weight: 600; }
-  .topbar-sub { font-size: 12px; color: var(--g400); margin-left: 8px; }
-  .topbar-right { display: flex; align-items: center; gap: 12px; }
-  .dot { width: 8px; height: 8px; border-radius: 50%; }
-  .dot.on { background: var(--green); }
-  .dot.off { background: var(--g300); }
-  .dot-label { font-size: 12px; color: var(--g500); }
-  .divider { width: 1px; height: 16px; background: var(--g200); margin: 0 4px; }
+  .topbar-logo { width: 32px; height: 32px; background: linear-gradient(135deg, #833ab4, #E1306C, #1877F2); border-radius: 10px; display: flex; align-items: center; justify-content: center; }
+  .topbar-logo svg { width: 18px; height: 18px; }
+  .topbar-title { font-size: 15px; font-weight: 700; color: var(--g900); }
+  .topbar-badge { font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; background: linear-gradient(135deg, #ede9fe, #e0e7ff); color: #6d28d9; letter-spacing: 0.04em; }
+  .topbar-right { display: flex; align-items: center; gap: 16px; }
+  .status-pill { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--g400); }
+  .status-pill .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--g300); flex-shrink: 0; }
+  .status-pill.on .dot { background: var(--green); }
+  .status-pill.on { color: var(--g600); }
 
-  .layout { max-width: 1320px; margin: 0 auto; padding: 24px; }
-  .section-heading { font-size: 13px; font-weight: 600; color: var(--g400); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  /* ── Layout ── */
+  .layout { max-width: 1080px; margin: 0 auto; padding: 32px 24px 64px; }
 
-  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 32px; }
-  @media (max-width: 900px) { .cards { grid-template-columns: 1fr; } }
+  /* ── Hero ── */
+  .hero { text-align: center; padding: 48px 0 40px; transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1); }
+  .hero.collapsed { padding: 16px 0 24px; }
+  .hero h1 { font-size: 36px; font-weight: 800; letter-spacing: -0.03em; color: var(--g900); line-height: 1.15; margin-bottom: 12px; }
+  .hero.collapsed h1 { font-size: 22px; }
+  .hero p { font-size: 16px; color: var(--g500); max-width: 540px; margin: 0 auto 32px; line-height: 1.6; }
+  .hero.collapsed p { display: none; }
+  .hero-buttons { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+  .hero.collapsed .hero-buttons { display: none; }
 
-  .card { background: white; border-radius: var(--radius); border: 1px solid var(--g200); overflow: hidden; transition: border-color 0.2s, box-shadow 0.2s; }
-  .card:hover { border-color: var(--g300); box-shadow: var(--shadow); }
-  .card.connected { border-color: var(--green-border); }
-
-  .card-top { padding: 20px 20px 0; display: flex; align-items: center; justify-content: space-between; }
-  .platform { display: flex; align-items: center; gap: 10px; }
-  .platform-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; }
-  .platform-icon.ig { background: linear-gradient(135deg, #833ab4, #E1306C, #fd1d1d); }
-  .platform-icon.fb { background: var(--fb); }
-  .platform-icon.li { background: var(--li); }
-  .platform-icon svg { width: 20px; height: 20px; }
-  .platform-name { font-size: 15px; font-weight: 600; }
-  .badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 99px; }
-  .badge.off { background: var(--g100); color: var(--g500); }
-  .badge.on { background: var(--green-bg); color: var(--green); }
-
-  .card-body { padding: 16px 20px 20px; }
-  .label-sm { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--g400); margin-bottom: 8px; }
-
-  .row { display: flex; align-items: center; justify-content: space-between; padding: 7px 0; border-bottom: 1px solid var(--g100); font-size: 13px; gap: 8px; }
-  .row:last-child { border-bottom: none; }
-  .row-label { color: var(--g600); flex: 1; }
-  .row-expect { text-align: right; }
-  .row-reality { min-width: 130px; text-align: right; display: flex; align-items: center; justify-content: flex-end; gap: 5px; }
-
-  .pill { display: inline-flex; font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 99px; letter-spacing: 0.02em; white-space: nowrap; }
-  .pill-g { background: var(--green-bg); color: var(--green); }
-  .pill-r { background: var(--red-bg); color: var(--red); }
-  .pill-a { background: var(--amber-bg); color: var(--amber); }
-  .pill-b { background: var(--blue-bg); color: var(--blue); }
-  .pill-x { background: var(--g100); color: var(--g500); }
-
-  .ok { color: var(--green); font-weight: 700; }
-  .fail { color: var(--red); font-weight: 700; }
-  .partial { color: var(--amber); font-weight: 700; }
-  .note { font-size: 11px; color: var(--g400); max-width: 130px; text-align: right; line-height: 1.3; }
-  .placeholder { font-size: 11px; color: var(--g300); font-style: italic; }
-
-  .btn {
-    width: 100%; margin-top: 12px; padding: 10px; border: none; border-radius: 8px;
-    font-family: inherit; font-size: 13px; font-weight: 600; color: white;
-    cursor: pointer; transition: all 0.15s; display: flex; align-items: center;
-    justify-content: center; gap: 8px;
+  .connect-btn {
+    display: inline-flex; align-items: center; gap: 10px; padding: 14px 28px;
+    border: none; border-radius: 12px; font-family: inherit; font-size: 15px;
+    font-weight: 600; color: white; cursor: pointer; transition: all 0.2s;
   }
-  .btn:hover { filter: brightness(1.08); }
-  .btn:active { transform: scale(0.98); }
-  .btn.ig { background: linear-gradient(135deg, #833ab4, #E1306C); }
-  .btn.fb { background: var(--fb); }
-  .btn.li { background: var(--li); }
-  .btn.loading { opacity: 0.7; pointer-events: none; }
-  .btn.done { background: var(--green); pointer-events: none; }
-  .btn svg { width: 14px; height: 14px; flex-shrink: 0; }
-
-  .spinner { width: 14px; height: 14px; border: 2px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+  .connect-btn:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+  .connect-btn:active { transform: scale(0.98); }
+  .connect-btn.meta { background: linear-gradient(135deg, #833ab4, #E1306C, #fd1d1d); }
+  .connect-btn.linkedin { background: var(--li); }
+  .connect-btn svg { width: 20px; height: 20px; flex-shrink: 0; }
+  .connect-btn.loading { opacity: 0.7; pointer-events: none; }
+  .connect-btn .spinner { width: 18px; height: 18px; border: 2.5px solid rgba(255,255,255,0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  .json-btn { font-size: 11px; color: var(--blue); cursor: pointer; font-weight: 500; border: none; background: none; font-family: inherit; padding: 4px 0; margin-top: 8px; display: none; }
-  .json-btn:hover { text-decoration: underline; }
-  .json-box { display: none; margin-top: 8px; background: var(--g900); color: #a5f3fc; border-radius: 8px; padding: 12px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 11px; line-height: 1.5; max-height: 300px; overflow: auto; white-space: pre-wrap; word-break: break-all; }
-  .json-box.show { display: block; }
+  /* ── Account Card ── */
+  .account-card {
+    display: none; background: white; border-radius: var(--radius-lg); border: 1px solid var(--g200);
+    padding: 24px 28px; margin-bottom: 32px; animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .account-card.show { display: block; }
+  @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+  .account-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+  .account-info { display: flex; align-items: center; gap: 16px; }
+  .account-avatar { width: 48px; height: 48px; border-radius: 14px; background: linear-gradient(135deg, var(--ig-light), var(--fb-light)); display: flex; align-items: center; justify-content: center; font-size: 22px; font-weight: 700; color: var(--ig); }
+  .account-details h3 { font-size: 17px; font-weight: 700; color: var(--g900); }
+  .account-details .account-meta { font-size: 13px; color: var(--g500); margin-top: 2px; }
+  .account-platforms { display: flex; gap: 8px; }
+  .platform-tag { display: inline-flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; padding: 5px 12px; border-radius: 99px; }
+  .platform-tag.ig { background: var(--ig-light); color: var(--ig); }
+  .platform-tag.fb { background: var(--fb-light); color: var(--fb); }
+  .platform-tag.li { background: var(--li-light); color: var(--li); }
+  .account-actions { display: flex; align-items: center; gap: 12px; }
+  .disconnect-btn { font-size: 12px; color: var(--g400); cursor: pointer; border: none; background: none; font-family: inherit; text-decoration: underline; text-underline-offset: 2px; }
+  .disconnect-btn:hover { color: var(--red); }
 
-  /* Token input for LinkedIn */
-  .token-input-wrap { margin-top: 8px; display: none; }
-  .token-input-wrap.show { display: block; }
-  .token-input { width: 100%; padding: 8px 10px; border: 1px solid var(--g200); border-radius: 6px; font-family: 'SF Mono', monospace; font-size: 11px; margin-bottom: 6px; }
-  .token-input:focus { outline: none; border-color: var(--li); }
-  .token-submit { padding: 6px 14px; border: none; border-radius: 6px; background: var(--li); color: white; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; }
+  /* ── Section headings ── */
+  .section { margin-bottom: 40px; }
+  .section-label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.1em; color: var(--g400); margin-bottom: 16px; }
+  .section-title { font-size: 20px; font-weight: 700; color: var(--g900); margin-bottom: 6px; }
+  .section-desc { font-size: 14px; color: var(--g500); margin-bottom: 20px; line-height: 1.6; }
 
-  /* Calendar */
-  .cal-panel { background: white; border-radius: var(--radius); border: 1px solid var(--g200); padding: 24px; }
-  .cal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; flex-wrap: wrap; gap: 12px; }
-  .cal-title { font-size: 16px; font-weight: 600; }
-  .tabs { display: flex; gap: 4px; background: var(--g100); border-radius: 8px; padding: 3px; }
-  .tab { padding: 6px 14px; border-radius: 6px; border: none; background: transparent; font-family: inherit; font-size: 12px; font-weight: 500; color: var(--g500); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+  /* ── Data Cards ── */
+  .data-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; }
+  @media (max-width: 700px) { .data-grid { grid-template-columns: 1fr; } }
+  .data-card {
+    background: white; border-radius: var(--radius); border: 1px solid var(--g200);
+    padding: 20px; transition: all 0.2s; animation: fadeUp 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .data-card:hover { border-color: var(--g300); box-shadow: var(--shadow); }
+  .data-card-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 10px; }
+  .data-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 18px; }
+  .data-icon.green { background: var(--green-bg); }
+  .data-icon.amber { background: var(--amber-bg); }
+  .data-icon.red { background: var(--red-bg); }
+  .data-icon.gray { background: var(--g100); }
+  .data-card-title { font-size: 14px; font-weight: 600; color: var(--g800); }
+  .data-card-source { font-size: 11px; color: var(--g400); margin-top: 1px; }
+  .data-card-body { font-size: 13px; color: var(--g600); line-height: 1.6; }
+  .data-card-body .stat { font-size: 24px; font-weight: 700; color: var(--g900); display: block; margin: 4px 0 2px; }
+
+  .data-empty { text-align: center; padding: 40px 20px; color: var(--g400); font-size: 14px; }
+
+  /* ── Methodology ── */
+  .method-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 800px) { .method-grid { grid-template-columns: 1fr; } }
+  .method-card {
+    background: white; border-radius: var(--radius); border: 1px solid var(--g200);
+    padding: 24px; transition: all 0.2s;
+  }
+  .method-card:hover { box-shadow: var(--shadow); }
+  .method-icon { width: 40px; height: 40px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 14px; }
+  .method-icon.ig { background: linear-gradient(135deg, #833ab4, #E1306C); }
+  .method-icon.fb { background: var(--fb); }
+  .method-icon.li { background: var(--li); }
+  .method-icon svg { width: 20px; height: 20px; }
+  .method-card h4 { font-size: 14px; font-weight: 700; color: var(--g800); margin-bottom: 8px; }
+  .method-card p { font-size: 13px; color: var(--g500); line-height: 1.65; }
+  .method-badge { display: inline-flex; font-size: 10px; font-weight: 700; padding: 3px 10px; border-radius: 99px; margin-top: 12px; letter-spacing: 0.03em; }
+  .method-badge.real { background: var(--green-bg); color: var(--green); }
+  .method-badge.inferred { background: var(--amber-bg); color: var(--amber); }
+  .method-badge.industry { background: #eef2ff; color: #4f46e5; }
+
+  /* ── Calendar ── */
+  .cal-panel { background: white; border-radius: var(--radius-lg); border: 1px solid var(--g200); padding: 28px; box-shadow: var(--shadow-sm); }
+  .cal-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  .cal-title { font-size: 18px; font-weight: 700; color: var(--g900); }
+  .tabs { display: flex; gap: 4px; background: var(--g100); border-radius: 10px; padding: 3px; }
+  .tab { padding: 7px 16px; border-radius: 8px; border: none; background: transparent; font-family: inherit; font-size: 13px; font-weight: 500; color: var(--g500); cursor: pointer; transition: all 0.2s; white-space: nowrap; }
   .tab:hover { color: var(--g700); }
-  .tab.active { background: white; color: var(--g800); box-shadow: var(--shadow-sm); }
+  .tab.active { background: white; color: var(--g800); box-shadow: var(--shadow-sm); font-weight: 600; }
   .tab.disabled { opacity: 0.35; cursor: not-allowed; }
 
-  .legend { display: flex; gap: 16px; margin-bottom: 16px; flex-wrap: wrap; }
-  .legend-i { display: flex; align-items: center; gap: 5px; font-size: 11px; color: var(--g500); }
-  .swatch { width: 12px; height: 12px; border-radius: 3px; }
-  .swatch.best { background: #bbf7d0; }
-  .swatch.good { background: #fef08a; }
-  .swatch.avoid { background: #fecaca; }
+  .legend { display: flex; gap: 20px; margin-bottom: 20px; flex-wrap: wrap; }
+  .legend-i { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--g500); font-weight: 500; }
+  .swatch { width: 14px; height: 14px; border-radius: 4px; }
+
+  /* Combined swatches */
+  .swatch.best-combined { background: #bbf7d0; }
+  .swatch.good-combined { background: #fef08a; }
+  .swatch.avoid-combined { background: var(--g200); }
+  /* IG swatches */
+  .swatch.best-ig { background: var(--ig); }
+  .swatch.good-ig { background: var(--ig-mid); }
+  .swatch.avoid-ig { background: var(--ig-light); }
+  /* FB swatches */
+  .swatch.best-fb { background: var(--fb); }
+  .swatch.good-fb { background: var(--fb-mid); }
+  .swatch.avoid-fb { background: var(--fb-light); }
   .swatch.none { background: var(--g100); border: 1px solid var(--g200); }
 
   .grid-wrap { overflow-x: auto; }
-  .grid { display: grid; grid-template-columns: 48px repeat(7, 1fr); gap: 2px; min-width: 640px; }
-  .gh { font-size: 11px; font-weight: 600; color: var(--g400); text-align: center; padding: 6px 0; }
-  .gt { font-size: 10px; color: var(--g400); text-align: right; padding-right: 8px; display: flex; align-items: center; justify-content: flex-end; }
-  .gc { height: 24px; border-radius: 3px; background: var(--g100); transition: all 0.15s; cursor: default; position: relative; }
-  .gc.best { background: #bbf7d0; }
-  .gc.good { background: #fef08a; }
-  .gc.avoid { background: #fecaca; }
-  .gc:hover { opacity: 0.8; transform: scaleY(1.6); z-index: 2; border-radius: 2px; }
-  .gc .tip { display: none; position: absolute; bottom: calc(100% + 4px); left: 50%; transform: translateX(-50%); background: var(--g800); color: white; font-size: 10px; padding: 4px 8px; border-radius: 4px; white-space: nowrap; z-index: 10; pointer-events: none; }
+  .grid { display: grid; grid-template-columns: 52px repeat(7, 1fr); gap: 2px; min-width: 640px; }
+  .gh { font-size: 11px; font-weight: 600; color: var(--g400); text-align: center; padding: 8px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+  .gt { font-size: 10px; color: var(--g400); text-align: right; padding-right: 10px; display: flex; align-items: center; justify-content: flex-end; font-weight: 500; }
+  .gc {
+    height: 26px; border-radius: 4px; background: var(--g100); transition: all 0.15s;
+    cursor: default; position: relative;
+  }
+  /* Combined colors */
+  .gc.best-combined { background: #bbf7d0; }
+  .gc.good-combined { background: #fef08a; }
+  .gc.avoid-combined { background: var(--g200); }
+  /* IG colors */
+  .gc.best-ig { background: var(--ig); }
+  .gc.good-ig { background: var(--ig-mid); }
+  .gc.avoid-ig { background: var(--ig-light); }
+  /* FB colors */
+  .gc.best-fb { background: var(--fb); }
+  .gc.good-fb { background: var(--fb-mid); }
+  .gc.avoid-fb { background: var(--fb-light); }
+  /* LI colors */
+  .gc.best-li { background: var(--li); }
+  .gc.good-li { background: #64b5f6; }
+  .gc.avoid-li { background: var(--li-light); }
+
+  .gc:hover { opacity: 0.85; transform: scaleY(1.5); z-index: 2; border-radius: 2px; }
+  .gc .tip {
+    display: none; position: absolute; bottom: calc(100% + 6px); left: 50%;
+    transform: translateX(-50%); background: var(--g900); color: white;
+    font-size: 11px; font-weight: 500; padding: 6px 10px; border-radius: 6px;
+    white-space: nowrap; z-index: 10; pointer-events: none; line-height: 1.4;
+  }
   .gc:hover .tip { display: block; }
 
-  .cal-empty { text-align: center; padding: 48px 20px; color: var(--g400); }
-  .cal-empty p { font-size: 13px; }
+  .cal-empty { text-align: center; padding: 56px 20px; color: var(--g400); }
+  .cal-empty p { font-size: 14px; }
+  .cal-empty .cal-empty-icon { font-size: 40px; margin-bottom: 12px; opacity: 0.3; }
 
-  .setup-box { background: var(--blue-bg); border: 1px solid #c7d2fe; border-radius: 10px; padding: 16px 20px; margin-bottom: 20px; }
-  .setup-box h3 { font-size: 14px; font-weight: 600; color: var(--blue); margin-bottom: 6px; }
-  .setup-box p { font-size: 13px; color: var(--g600); line-height: 1.6; }
-  .setup-box code { background: white; padding: 1px 6px; border-radius: 4px; font-size: 12px; font-family: 'SF Mono', monospace; }
-  .setup-box input { width: 100%; padding: 8px 10px; border: 1px solid var(--g200); border-radius: 6px; font-family: 'SF Mono', monospace; font-size: 12px; margin-top: 6px; }
-  .setup-box input:focus { outline: none; border-color: var(--blue); }
-  .setup-row { display: flex; gap: 8px; margin-top: 8px; align-items: center; }
-  .setup-btn { padding: 8px 16px; border: none; border-radius: 6px; background: var(--blue); color: white; font-family: inherit; font-size: 12px; font-weight: 600; cursor: pointer; white-space: nowrap; }
-  .setup-btn:hover { filter: brightness(1.1); }
-  .setup-status { font-size: 12px; }
+  /* ── LinkedIn token input ── */
+  .li-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 200; align-items: center; justify-content: center; backdrop-filter: blur(4px); }
+  .li-modal.show { display: flex; }
+  .li-modal-box { background: white; border-radius: var(--radius-lg); padding: 28px; max-width: 440px; width: 90%; box-shadow: var(--shadow-lg); animation: fadeUp 0.3s; }
+  .li-modal-box h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+  .li-modal-box p { font-size: 13px; color: var(--g500); line-height: 1.6; margin-bottom: 16px; }
+  .li-modal-box input { width: 100%; padding: 10px 12px; border: 1px solid var(--g200); border-radius: 8px; font-family: 'SF Mono', 'Fira Code', monospace; font-size: 12px; }
+  .li-modal-box input:focus { outline: none; border-color: var(--li); box-shadow: 0 0 0 3px rgba(10,102,194,0.1); }
+  .li-modal-btns { display: flex; gap: 8px; margin-top: 14px; justify-content: flex-end; }
+  .li-modal-cancel { padding: 9px 18px; border: 1px solid var(--g200); border-radius: 8px; background: white; font-family: inherit; font-size: 13px; font-weight: 500; cursor: pointer; color: var(--g600); }
+  .li-modal-submit { padding: 9px 18px; border: none; border-radius: 8px; background: var(--li); color: white; font-family: inherit; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .li-modal-submit:hover { filter: brightness(1.1); }
 
-  .setup-note { font-size: 11px; color: var(--g500); line-height: 1.5; margin-top: 10px; padding: 10px 12px; background: #fffbeb; border: 1px solid #fde68a; border-radius: 6px; }
-  .setup-note b { color: var(--g700); }
-  .setup-note ol { margin: 4px 0 0 16px; }
-  .setup-note li { margin-bottom: 2px; }
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .topbar { padding: 0 16px; }
+    .layout { padding: 20px 16px 48px; }
+    .hero h1 { font-size: 28px; }
+    .hero p { font-size: 14px; }
+    .connect-btn { padding: 12px 20px; font-size: 14px; width: 100%; justify-content: center; }
+    .account-header { flex-direction: column; align-items: flex-start; }
+    .method-grid { grid-template-columns: 1fr; }
+    .cal-panel { padding: 16px; }
+    .cal-top { flex-direction: column; align-items: flex-start; }
+  }
 </style>
 </head>
 <body>
 
+<!-- Topbar -->
 <div class="topbar">
   <div class="topbar-left">
-    <div class="topbar-logo"><svg viewBox="0 0 24 24" fill="white"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg></div>
+    <div class="topbar-logo"><svg viewBox="0 0 24 24" fill="white"><path d="M13 3v7h7l-9 11v-7H4l9-11z"/></svg></div>
     <span class="topbar-title">Best Time to Post</span>
-    <span class="topbar-sub">API Testing Dashboard</span>
+    <span class="topbar-badge">BETA</span>
   </div>
   <div class="topbar-right">
-    <div class="dot off" id="dot-meta"></div>
-    <span class="dot-label" id="lbl-meta">Meta: not connected</span>
-    <div class="divider"></div>
-    <div class="dot off" id="dot-li"></div>
-    <span class="dot-label" id="lbl-li">LinkedIn: not connected</span>
-    <div class="divider"></div>
-    <button onclick="resetMeta()" style="font-size:11px;background:none;border:1px solid var(--g300);border-radius:4px;padding:3px 8px;cursor:pointer;color:var(--g500);font-family:inherit;">Reset Meta</button>
+    <div class="status-pill" id="status-meta"><span class="dot"></span> Meta</div>
+    <div class="status-pill" id="status-li"><span class="dot"></span> LinkedIn</div>
   </div>
 </div>
 
 <div class="layout">
 
-  <div id="summary-banner" style="display:none; background:white; border:1px solid var(--g200); border-radius:var(--radius); padding:20px; margin-bottom:20px;">
-    <div style="font-size:15px; font-weight:600; margin-bottom:12px;">Results Summary</div>
-    <div id="summary-content" style="font-size:13px; color:var(--g600); line-height:1.8;"></div>
+  <!-- Hero / Connect -->
+  <div class="hero" id="hero">
+    <h1>Find Your Best Time to Post</h1>
+    <p>Connect your social media accounts and we'll analyze your real audience data to recommend the optimal times to publish your content.</p>
+    <div class="hero-buttons">
+      <button class="connect-btn meta" id="btn-meta" onclick="connectMeta()">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+        Connect Instagram &amp; Facebook
+      </button>
+      <button class="connect-btn linkedin" id="btn-li" onclick="showLiModal()">
+        <svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+        Connect LinkedIn
+      </button>
+    </div>
   </div>
-  <div class="section-heading">Platform Data Availability</div>
-  <div class="cards">
 
-    <!-- INSTAGRAM -->
-    <div class="card" id="card-ig">
-      <div class="card-top">
-        <div class="platform">
-          <div class="platform-icon ig"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></div>
-          <span class="platform-name">Instagram</span>
+  <!-- Account Card (hidden until connected) -->
+  <div class="account-card" id="account-card">
+    <div class="account-header">
+      <div class="account-info">
+        <div class="account-avatar" id="account-avatar">?</div>
+        <div class="account-details">
+          <h3 id="account-name">Connecting...</h3>
+          <div class="account-meta" id="account-meta"></div>
         </div>
-        <span class="badge off" id="badge-ig">Not connected</span>
       </div>
-      <div class="card-body">
-        <div class="label-sm">Expected vs Reality</div>
-        <div id="rows-ig">
-          <div class="row"><span class="row-label">Online followers (hourly)</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Post history + timestamps</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Per-post metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Audience geography</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Audience demographics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Reels metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Story metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-        </div>
-        <button class="btn ig" id="btn-ig" onclick="connectMeta()">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Connect Instagram + Facebook
-        </button>
-        <button class="json-btn" id="jb-ig" onclick="toggleJSON('ig')">View raw API response</button>
-        <div class="json-box" id="jx-ig"></div>
+      <div style="display:flex; align-items:center; gap:12px; flex-wrap:wrap;">
+        <div class="account-platforms" id="account-platforms"></div>
+        <button class="disconnect-btn" onclick="resetMeta()">Disconnect</button>
       </div>
     </div>
+  </div>
 
-    <!-- FACEBOOK -->
-    <div class="card" id="card-fb">
-      <div class="card-top">
-        <div class="platform">
-          <div class="platform-icon fb"><svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
-          <span class="platform-name">Facebook</span>
-        </div>
-        <span class="badge off" id="badge-fb">Not connected</span>
+  <!-- Your Data Section (hidden until connected) -->
+  <div class="section" id="data-section" style="display:none;">
+    <div class="section-label">Your Data</div>
+    <div class="section-title">What we received from your accounts</div>
+    <div class="section-desc">Here's a summary of the data we were able to pull from your connected social media profiles.</div>
+    <div class="data-grid" id="data-grid"></div>
+  </div>
+
+  <!-- Methodology Section (always visible) -->
+  <div class="section">
+    <div class="section-label">Methodology</div>
+    <div class="section-title">How we calculate your best times</div>
+    <div class="section-desc">We use different data sources for each platform to give you the most accurate recommendations possible.</div>
+    <div class="method-grid">
+      <div class="method-card">
+        <div class="method-icon ig"><svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg></div>
+        <h4>Instagram</h4>
+        <p>We use your real <strong>online followers</strong> data — hour-by-hour counts of when your followers are actually active on Instagram — to identify peak engagement windows.</p>
+        <span class="method-badge real">Real-time data</span>
       </div>
-      <div class="card-body">
-        <div class="label-sm">Expected vs Reality</div>
-        <div id="rows-fb">
-          <div class="row"><span class="row-label">Fans online (hourly)</span><span class="row-expect"><span class="pill pill-r">DEPRECATED</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Post history + timestamps</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Per-post metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Page engagement (daily)</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Fan demographics</span><span class="row-expect"><span class="pill pill-r">DEPRECATED</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Inferred best time</span><span class="row-expect"><span class="pill pill-a">COMPUTED</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Video metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-        </div>
-        <button class="btn fb" id="btn-fb" onclick="connectMeta()">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Connect Facebook
-        </button>
-        <button class="json-btn" id="jb-fb" onclick="toggleJSON('fb')">View raw API response</button>
-        <div class="json-box" id="jx-fb"></div>
+      <div class="method-card">
+        <div class="method-icon fb"><svg viewBox="0 0 24 24" fill="white"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg></div>
+        <h4>Facebook</h4>
+        <p>Since Meta deprecated real-time audience data for Facebook in 2024, we analyze <strong>engagement patterns</strong> from your recent posts to find when your audience is most responsive.</p>
+        <span class="method-badge inferred">Inferred from history</span>
+      </div>
+      <div class="method-card">
+        <div class="method-icon li"><svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div>
+        <h4>LinkedIn</h4>
+        <p>LinkedIn doesn't provide audience activity data. We combine <strong>industry best practices</strong> with your posting history to recommend optimal business-hour time slots.</p>
+        <span class="method-badge industry">Industry data</span>
       </div>
     </div>
-
-    <!-- LINKEDIN -->
-    <div class="card" id="card-li">
-      <div class="card-top">
-        <div class="platform">
-          <div class="platform-icon li"><svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></div>
-          <span class="platform-name">LinkedIn</span>
-        </div>
-        <span class="badge off" id="badge-li">Not connected</span>
-      </div>
-      <div class="card-body">
-        <div class="label-sm">Expected vs Reality</div>
-        <div id="rows-li">
-          <div class="row"><span class="row-label">Followers online (hourly)</span><span class="row-expect"><span class="pill pill-r">NOT AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Post history + timestamps</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Per-post metrics</span><span class="row-expect"><span class="pill pill-g">AVAILABLE</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Follower geography</span><span class="row-expect"><span class="pill pill-b">CO. PAGE ONLY</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Follower industry</span><span class="row-expect"><span class="pill pill-b">CO. PAGE ONLY</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Follower seniority</span><span class="row-expect"><span class="pill pill-b">CO. PAGE ONLY</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-          <div class="row"><span class="row-label">Inferred best time</span><span class="row-expect"><span class="pill pill-a">COMPUTED</span></span><span class="row-reality"><span class="placeholder">connect to test</span></span></div>
-        </div>
-        <button class="btn li" id="btn-li" onclick="showLiToken()">
-          <svg viewBox="0 0 24 24" fill="white"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg> Connect LinkedIn
-        </button>
-        <div class="token-input-wrap" id="li-token-wrap">
-          <p style="font-size:11px;color:var(--g500);margin-bottom:6px">LinkedIn requires server-side OAuth. Paste an access token from your LinkedIn app's <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank">OAuth Token Generator</a>:</p>
-          <input class="token-input" type="text" id="li-token-input" placeholder="Paste LinkedIn access token here">
-          <button class="token-submit" onclick="connectLinkedIn()">Fetch Data</button>
-        </div>
-        <button class="json-btn" id="jb-li" onclick="toggleJSON('li')">View raw API response</button>
-        <div class="json-box" id="jx-li"></div>
-      </div>
-    </div>
-
   </div>
 
   <!-- Calendar -->
-  <div class="cal-panel">
-    <div class="cal-top">
-      <span class="cal-title">Ideal Posting Schedule</span>
-      <div class="tabs">
-        <button class="tab active" data-p="all" onclick="switchTab(this)">Combined</button>
-        <button class="tab disabled" data-p="ig" id="tab-ig" onclick="switchTab(this)">Instagram</button>
-        <button class="tab disabled" data-p="fb" id="tab-fb" onclick="switchTab(this)">Facebook</button>
-        <button class="tab disabled" data-p="li" id="tab-li" onclick="switchTab(this)">LinkedIn</button>
+  <div class="section">
+    <div class="cal-panel">
+      <div class="cal-top">
+        <span class="cal-title">Your Posting Schedule</span>
+        <div class="tabs" id="cal-tabs">
+          <button class="tab active" data-p="all" onclick="switchTab(this)">Combined</button>
+          <button class="tab disabled" data-p="ig" id="tab-ig" onclick="switchTab(this)">Instagram</button>
+          <button class="tab disabled" data-p="fb" id="tab-fb" onclick="switchTab(this)">Facebook</button>
+          <button class="tab disabled" data-p="li" id="tab-li" onclick="switchTab(this)">LinkedIn</button>
+        </div>
+      </div>
+      <div id="legend-area">
+        <div class="legend" id="legend">
+          <div class="legend-i"><div class="swatch best-combined"></div>Best time</div>
+          <div class="legend-i"><div class="swatch good-combined"></div>Good time</div>
+          <div class="legend-i"><div class="swatch avoid-combined"></div>Low activity</div>
+          <div class="legend-i"><div class="swatch none"></div>No data</div>
+        </div>
+      </div>
+      <div id="cal-area">
+        <div class="cal-empty" id="cal-empty">
+          <div class="cal-empty-icon">&#128197;</div>
+          <p>Connect a social media account to see your personalized posting schedule</p>
+        </div>
+        <div class="grid-wrap" id="grid-wrap" style="display:none"><div class="grid" id="grid"></div></div>
       </div>
     </div>
-    <div class="legend">
-      <div class="legend-i"><div class="swatch best"></div>Best</div>
-      <div class="legend-i"><div class="swatch good"></div>Good</div>
-      <div class="legend-i"><div class="swatch avoid"></div>Avoid</div>
-      <div class="legend-i"><div class="swatch none"></div>No data</div>
-    </div>
-    <div id="cal-area">
-      <div class="cal-empty" id="cal-empty"><p>Connect a profile above to generate your personalized posting schedule</p></div>
-      <div class="grid-wrap" id="grid-wrap" style="display:none"><div class="grid" id="grid"></div></div>
+  </div>
+
+</div>
+
+<!-- LinkedIn Modal -->
+<div class="li-modal" id="li-modal">
+  <div class="li-modal-box">
+    <h3>Connect LinkedIn</h3>
+    <p>LinkedIn requires server-side OAuth. For now, paste an access token from the <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank" style="color:var(--li)">OAuth Token Generator</a>.</p>
+    <input type="text" id="li-token-input" placeholder="Paste your LinkedIn access token">
+    <div class="li-modal-btns">
+      <button class="li-modal-cancel" onclick="closeLiModal()">Cancel</button>
+      <button class="li-modal-submit" onclick="connectLinkedIn()">Connect</button>
     </div>
   </div>
 </div>
@@ -320,9 +374,9 @@ window.fbAsyncInit = function() {
 const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const state = { ig: false, fb: false, li: false };
 const results = {};
+let activeTab = 'all';
 
 // ── Meta connect (Facebook Login for Business) ──
-// Uses config_id if available, falls back to scope-based login
 const META_CONFIG_ID = '1826888727999876';
 const LOGIN_SCOPES = 'pages_show_list,business_management';
 
@@ -333,9 +387,12 @@ function doMetaLogin() {
   FB.login(function(response) {
     if (response.authResponse) {
       const token = response.authResponse.accessToken;
-      setConnected('ig'); setConnected('fb');
-      document.getElementById('dot-meta').classList.replace('off','on');
-      document.getElementById('lbl-meta').textContent = 'Meta: connected';
+      state.ig = true; state.fb = true;
+      document.getElementById('status-meta').classList.add('on');
+      document.getElementById('tab-ig').classList.remove('disabled');
+      document.getElementById('tab-fb').classList.remove('disabled');
+      collapseHero();
+      setMetaBtnLoading();
       fetchMetaData(token);
     } else {
       console.warn('FB login response:', response);
@@ -344,8 +401,7 @@ function doMetaLogin() {
 }
 
 function connectMeta() {
-  if (!window.FB) { alert('Facebook SDK not loaded.'); return; }
-  // Check if already logged in — revoke old permissions first, then re-login
+  if (!window.FB) { alert('Facebook SDK not loaded. Please refresh the page.'); return; }
   FB.getLoginStatus(function(s) {
     if (s.status === 'connected') {
       FB.api('/me/permissions', 'DELETE', function() {
@@ -357,13 +413,35 @@ function connectMeta() {
   });
 }
 
+function resetMeta() {
+  if (!window.FB) return;
+  FB.getLoginStatus(function(s) {
+    if (s.status === 'connected') {
+      FB.api('/me/permissions', 'DELETE', function() {
+        FB.logout(function() { location.reload(); });
+      });
+    } else {
+      location.reload();
+    }
+  });
+}
+
+function setMetaBtnLoading() {
+  const btn = document.getElementById('btn-meta');
+  btn.classList.add('loading');
+  btn.innerHTML = '<div class="spinner"></div> Analyzing your data...';
+}
+
+function collapseHero() {
+  document.getElementById('hero').classList.add('collapsed');
+}
+
 async function gql(path, token) {
   const r = await fetch(`https://graph.facebook.com/v21.0/${path}&access_token=${token}`);
   return r.json();
 }
 
 async function fetchMetaData(token) {
-  setLoading('ig'); setLoading('fb');
   const R = {};
   try {
     // Pages
@@ -371,13 +449,13 @@ async function fetchMetaData(token) {
     const p = pages.data || [];
     R.pages = { status: p.length > 0 ? 'ok' : 'fail', note: `${p.length} page(s) found` };
     const page = p[0];
-    if (!page) { results.meta = R; updateMetaRows(R); return; }
+    if (!page) { results.meta = R; showDataCards(R); showMetaDone(); return; }
     const pt = page.access_token;
 
     // FB posts
     const posts = await gql(`${page.id}/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100`, pt);
     const pd = posts.data || [];
-    R.fb_post_history = { status: pd.length > 0 ? 'ok' : 'fail', note: `${pd.length} posts fetched` };
+    R.fb_post_history = { status: pd.length > 0 ? 'ok' : 'fail', count: pd.length, note: `${pd.length} posts fetched` };
 
     // FB post insights (first 3)
     let insOk = false; let fbInsErr = '';
@@ -392,13 +470,13 @@ async function fetchMetaData(token) {
 
     // FB page insights
     const pi = await gql(`${page.id}/insights?metric=page_post_engagements,page_views_total&period=day`, pt);
-    R.fb_page_insights = { status: pi.data?.length > 0 ? 'ok' : 'fail', note: pi.data?.length > 0 ? 'Daily engagement available' : 'Needs pages_read_engagement' };
+    R.fb_page_insights = { status: pi.data?.length > 0 ? 'ok' : 'fail', note: pi.data?.length > 0 ? 'Daily engagement available' : 'Not available' };
 
     // FB fans online (deprecated)
     const fo = await gql(`${page.id}/insights?metric=page_fans_online&period=day`, pt);
-    R.fb_fans_online = { status: fo.error ? 'fail' : 'ok', note: fo.error ? 'Deprecated — confirmed' : 'Unexpectedly available!' };
+    R.fb_fans_online = { status: fo.error ? 'fail' : 'ok', note: fo.error ? 'Deprecated by Meta (Sep 2024)' : 'Unexpectedly available!' };
 
-    // Inferred times
+    // Inferred times from FB posts
     if (pd.length > 0) {
       const he = {};
       for (const post of pd) {
@@ -418,12 +496,15 @@ async function fetchMetaData(token) {
     const igAcc = page.instagram_business_account;
     if (igAcc) {
       const igId = igAcc.id;
-      const prof = await gql(`${igId}?fields=id,username,name,followers_count,media_count`, token);
-      R.ig_profile = { status: 'ok', note: `@${prof.username || '?'}, ${prof.followers_count || 0} followers` };
+      const prof = await gql(`${igId}?fields=id,username,name,followers_count,media_count,biography,profile_picture_url`, token);
+      R.ig_profile = { status: 'ok', data: prof, note: `@${prof.username || '?'}, ${prof.followers_count || 0} followers` };
+
+      // Show account card with profile info
+      showAccountInfo(prof, page.name);
 
       const media = await gql(`${igId}/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100`, token);
       const md = media.data || [];
-      R.ig_post_history = { status: md.length > 0 ? 'ok' : 'fail', note: `${md.length} posts fetched` };
+      R.ig_post_history = { status: md.length > 0 ? 'ok' : 'fail', count: md.length, note: `${md.length} posts fetched` };
 
       let igInsOk = false; let igInsErr = '';
       for (const m of md.slice(0, 3)) {
@@ -439,7 +520,7 @@ async function fetchMetaData(token) {
       // THE KEY: online_followers
       const ol = await gql(`${igId}/insights?metric=online_followers&period=lifetime`, token);
       const olData = ol.data?.[0]?.values?.[0]?.value;
-      R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : (ol.error?.message || 'Permission not granted yet') };
+      R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : (ol.error?.message || 'Not available') };
 
       // Demographics (v21+ requires breakdown param)
       const demoCity = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=city`, token);
@@ -447,56 +528,155 @@ async function fetchMetaData(token) {
       const demoGender = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=gender`, token);
       const demoCountry = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=country`, token);
       const demoAll = [...(demoCity.data||[]), ...(demoAge.data||[]), ...(demoGender.data||[]), ...(demoCountry.data||[])];
-      R.ig_audience_geo = { status: demoAll.length > 0 ? 'ok' : 'fail', data: demoAll, note: demoAll.length > 0 ? `City, age, gender, country` : (demoCity.error?.message || 'Not available') };
+      R.ig_audience_geo = { status: demoAll.length > 0 ? 'ok' : 'fail', data: demoAll, note: demoAll.length > 0 ? 'City, age, gender, country' : (demoCity.error?.message || 'Not available') };
     } else {
       R.ig_profile = { status: 'fail', note: 'No IG Business account linked' };
+      showAccountInfo(null, page.name);
     }
 
     results.meta = R;
-    updateMetaRows(R);
-    document.getElementById('jb-ig').style.display = 'block';
-    document.getElementById('jb-fb').style.display = 'block';
-    document.getElementById('jx-ig').textContent = JSON.stringify(R, null, 2);
-    document.getElementById('jx-fb').textContent = JSON.stringify(R, null, 2);
-    setDone('ig'); setDone('fb');
-    showSummary(R);
+    showDataCards(R);
+    showMetaDone();
     buildCal();
   } catch (e) {
     console.error(e);
-    setDone('ig'); setDone('fb');
+    showMetaDone();
   }
 }
 
-function updateMetaRows(R) {
-  const igMap = ['ig_online_followers','ig_post_history','ig_post_metrics','ig_audience_geo','ig_audience_geo','ig_post_metrics','ig_post_metrics'];
-  const fbMap = ['fb_fans_online','fb_post_history','fb_post_metrics','fb_page_insights','fb_fans_online','fb_inferred_times','fb_post_metrics'];
-  fillRows('ig', igMap, R);
-  fillRows('fb', fbMap, R);
+function showMetaDone() {
+  const btn = document.getElementById('btn-meta');
+  btn.classList.remove('loading');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Connected';
+  btn.style.pointerEvents = 'none';
+  btn.style.background = 'var(--green)';
 }
 
-function fillRows(platform, keys, R) {
-  const rows = document.querySelectorAll(`#rows-${platform} .row`);
-  rows.forEach((row, i) => {
-    const el = row.querySelector('.row-reality');
-    const r = R[keys[i]];
-    if (!r) { el.innerHTML = '<span class="pill pill-x">NOT TESTED</span>'; return; }
-    const ic = r.status === 'ok' ? '<span class="ok">&#10003;</span>' : r.status === 'partial' ? '<span class="partial">~</span>' : '<span class="fail">&#10005;</span>';
-    el.innerHTML = `${ic}<span class="note">${r.note || ''}</span>`;
-  });
+// ── Account Info ──
+function showAccountInfo(igProf, pageName) {
+  const card = document.getElementById('account-card');
+  card.classList.add('show');
+
+  const name = igProf?.name || igProf?.username || pageName || 'Your Business';
+  const avatar = name.charAt(0).toUpperCase();
+  document.getElementById('account-avatar').textContent = avatar;
+  document.getElementById('account-name').textContent = name;
+
+  const metaParts = [];
+  if (igProf?.username) metaParts.push(`@${igProf.username}`);
+  if (igProf?.followers_count) metaParts.push(`${igProf.followers_count.toLocaleString()} followers`);
+  if (igProf?.media_count) metaParts.push(`${igProf.media_count} posts`);
+  document.getElementById('account-meta').textContent = metaParts.join(' · ') || pageName || '';
+
+  const plat = document.getElementById('account-platforms');
+  plat.innerHTML = '';
+  if (state.ig) plat.innerHTML += '<span class="platform-tag ig">Instagram</span>';
+  if (state.fb) plat.innerHTML += '<span class="platform-tag fb">Facebook</span>';
+  if (state.li) plat.innerHTML += '<span class="platform-tag li">LinkedIn</span>';
 }
 
-// ── LinkedIn (token paste) ──
-function showLiToken() {
-  document.getElementById('li-token-wrap').classList.add('show');
+// ── Data Cards ──
+function showDataCards(R) {
+  const section = document.getElementById('data-section');
+  section.style.display = 'block';
+  const grid = document.getElementById('data-grid');
+  grid.innerHTML = '';
+
+  const cards = [];
+
+  // Online Followers (the gold metric)
+  if (R.ig_online_followers) {
+    const d = R.ig_online_followers;
+    if (d.status === 'ok' && d.data) {
+      const peak = Object.entries(d.data).sort((a,b) => b[1] - a[1])[0];
+      const peakHour = peak ? formatHour(parseInt(peak[0])) : '';
+      const peakCount = peak ? peak[1] : 0;
+      cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Online Followers', source: 'Instagram', body: `<span class="stat">${peakCount.toLocaleString()}</span>Peak at ${peakHour} · Hourly data for all 24 hours` });
+    } else {
+      cards.push({ icon: '&#10060;', iconClass: 'red', title: 'Online Followers', source: 'Instagram', body: `Not available. ${d.note || 'Your account may need 100+ followers.'}` });
+    }
+  }
+
+  // Post History
+  const igPosts = R.ig_post_history?.count || 0;
+  const fbPosts = R.fb_post_history?.count || 0;
+  if (igPosts > 0 || fbPosts > 0) {
+    const parts = [];
+    if (igPosts > 0) parts.push(`${igPosts} from Instagram`);
+    if (fbPosts > 0) parts.push(`${fbPosts} from Facebook`);
+    cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Post History', source: [igPosts > 0 ? 'Instagram' : '', fbPosts > 0 ? 'Facebook' : ''].filter(Boolean).join(' + '), body: `<span class="stat">${igPosts + fbPosts}</span>Recent posts analyzed · ${parts.join(', ')}` });
+  }
+
+  // Post Performance
+  const igMetrics = R.ig_post_metrics?.status === 'ok';
+  const fbMetrics = R.fb_post_metrics?.status === 'ok';
+  if (igMetrics || fbMetrics) {
+    const parts = [];
+    if (igMetrics) parts.push('Instagram (reach, interactions, saves)');
+    if (fbMetrics) parts.push('Facebook (impressions, reactions)');
+    cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Post Performance', source: [igMetrics ? 'Instagram' : '', fbMetrics ? 'Facebook' : ''].filter(Boolean).join(' + '), body: `Per-post engagement metrics available.<br>${parts.join('<br>')}` });
+  } else if (R.ig_post_metrics || R.fb_post_metrics) {
+    cards.push({ icon: '&#128993;', iconClass: 'amber', title: 'Post Performance', source: 'Meta', body: 'Limited per-post metrics. Some insights require additional API permissions.' });
+  }
+
+  // Audience Demographics
+  if (R.ig_audience_geo?.status === 'ok') {
+    cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Audience Demographics', source: 'Instagram', body: 'City, country, age, and gender breakdown of your followers.' });
+  } else if (R.ig_audience_geo) {
+    cards.push({ icon: '&#10060;', iconClass: 'red', title: 'Audience Demographics', source: 'Instagram', body: `Not available. ${R.ig_audience_geo.note || 'May require additional permissions.'}` });
+  }
+
+  // FB Engagement
+  if (R.fb_page_insights?.status === 'ok') {
+    cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Page Engagement', source: 'Facebook', body: 'Daily page views and post engagement metrics available.' });
+  }
+
+  // FB Inferred Times
+  if (R.fb_inferred_times?.status === 'ok') {
+    cards.push({ icon: '&#128994;', iconClass: 'green', title: 'Engagement Patterns', source: 'Facebook', body: `Best posting times computed from engagement data across ${R.fb_inferred_times.note?.replace('From ','')}.` });
+  }
+
+  // Render cards
+  if (cards.length === 0) {
+    grid.innerHTML = '<div class="data-empty">No data received. Please check your account permissions.</div>';
+    return;
+  }
+
+  for (const c of cards) {
+    grid.innerHTML += `
+      <div class="data-card">
+        <div class="data-card-header">
+          <div class="data-icon ${c.iconClass}">${c.icon}</div>
+          <div>
+            <div class="data-card-title">${c.title}</div>
+            <div class="data-card-source">${c.source}</div>
+          </div>
+        </div>
+        <div class="data-card-body">${c.body}</div>
+      </div>`;
+  }
+}
+
+// ── LinkedIn ──
+function showLiModal() {
+  document.getElementById('li-modal').classList.add('show');
+}
+function closeLiModal() {
+  document.getElementById('li-modal').classList.remove('show');
 }
 
 async function connectLinkedIn() {
   const token = document.getElementById('li-token-input').value.trim();
   if (!token) return;
-  setConnected('li');
-  setLoading('li');
-  document.getElementById('dot-li').classList.replace('off','on');
-  document.getElementById('lbl-li').textContent = 'LinkedIn: connected';
+  closeLiModal();
+  state.li = true;
+  document.getElementById('status-li').classList.add('on');
+  document.getElementById('tab-li').classList.remove('disabled');
+  collapseHero();
+
+  const btn = document.getElementById('btn-li');
+  btn.classList.add('loading');
+  btn.innerHTML = '<div class="spinner"></div> Connecting...';
 
   const R = {};
   const hdrs = { 'Authorization': `Bearer ${token}`, 'X-Restli-Protocol-Version': '2.0.0', 'LinkedIn-Version': '202501' };
@@ -506,7 +686,6 @@ async function connectLinkedIn() {
     R.profile = { status: 'ok', note: prof.name || 'Profile fetched' };
   } catch { R.profile = { status: 'fail', note: 'CORS blocked — expected on static page' }; }
 
-  // LinkedIn API blocks CORS from browsers — mark accordingly
   R.li_followers_online = { status: 'fail', note: 'No such endpoint exists' };
   R.li_post_history = { status: 'partial', note: 'CORS blocks browser calls — needs server proxy' };
   R.li_share_stats = { status: 'partial', note: 'CORS blocks browser calls — needs server proxy' };
@@ -515,85 +694,59 @@ async function connectLinkedIn() {
   R.li_follower_seniority = { status: 'partial', note: 'CORS blocks browser calls — needs server proxy' };
 
   results.linkedin = R;
-  const liKeys = ['li_followers_online','li_post_history','li_share_stats','li_follower_geo','li_follower_industry','li_follower_seniority','li_share_stats'];
-  fillRows('li', liKeys, R);
-  document.getElementById('jb-li').style.display = 'block';
-  document.getElementById('jx-li').textContent = JSON.stringify(R, null, 2);
+
+  // Update account card
+  const plat = document.getElementById('account-platforms');
+  if (!plat.innerHTML.includes('LinkedIn')) {
+    plat.innerHTML += '<span class="platform-tag li">LinkedIn</span>';
+  }
+  if (!document.getElementById('account-card').classList.contains('show')) {
+    document.getElementById('account-card').classList.add('show');
+    document.getElementById('account-name').textContent = 'Your Business';
+    document.getElementById('account-avatar').textContent = 'L';
+  }
+
+  btn.classList.remove('loading');
+  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="20" height="20"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Connected';
+  btn.style.pointerEvents = 'none';
+  btn.style.background = 'var(--green)';
+
   buildCal();
 }
 
 // ── Helpers ──
-function setConnected(p) {
-  state[p] = true;
-  document.getElementById(`card-${p}`).classList.add('connected');
-  const b = document.getElementById(`badge-${p}`); b.textContent = 'Connected'; b.classList.replace('off','on');
-  const btn = document.getElementById(`btn-${p}`);
-  btn.classList.add('done');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Connected';
-  document.getElementById(`tab-${p}`).classList.remove('disabled');
-}
-function setLoading(p) {
-  const btn = document.getElementById(`btn-${p}`);
-  btn.classList.add('loading');
-  btn.innerHTML = '<div class="spinner"></div> Fetching data...';
-}
-function setDone(p) {
-  const btn = document.getElementById(`btn-${p}`);
-  btn.classList.remove('loading');
-  btn.classList.add('done');
-  btn.innerHTML = '<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Done — see results above';
-}
-function toggleJSON(p) { document.getElementById(`jx-${p}`).classList.toggle('show'); }
-
-function showSummary(R) {
-  const el = document.getElementById('summary-banner');
-  const c = document.getElementById('summary-content');
-  el.style.display = 'block';
-  const lines = [];
-  // Count successes
-  const ok = Object.values(R).filter(v => v.status === 'ok').length;
-  const fail = Object.values(R).filter(v => v.status === 'fail').length;
-  lines.push(`<b style="color:var(--green)">&#10003; Got data (${ok})</b>: `);
-  const wins = [];
-  if (R.ig_online_followers?.status === 'ok') wins.push('IG online followers (hourly) — <b>key metric for Best Time to Post</b>');
-  if (R.ig_post_history?.status === 'ok') wins.push(`IG posts (${R.ig_post_history.note})`);
-  if (R.ig_profile?.status === 'ok') wins.push(`IG profile (${R.ig_profile.note})`);
-  if (R.fb_post_history?.status === 'ok') wins.push(`FB posts (${R.fb_post_history.note})`);
-  if (R.fb_inferred_times?.status === 'ok') wins.push(`FB inferred best times (${R.fb_inferred_times.note})`);
-  if (R.ig_audience_geo?.status === 'ok') wins.push('IG audience demographics');
-  if (R.ig_post_metrics?.status === 'ok') wins.push('IG per-post insights');
-  if (R.fb_post_metrics?.status === 'ok') wins.push('FB per-post insights');
-  if (R.fb_page_insights?.status === 'ok') wins.push('FB page engagement');
-  lines.push(wins.map(w => `&nbsp;&nbsp;&#8226; ${w}`).join('<br>'));
-
-  lines.push(`<br><b style="color:var(--red)">&#10005; Not available (${fail})</b>:`);
-  const fails = [];
-  if (R.fb_fans_online?.status === 'fail') fails.push('FB fans online — <i>deprecated by Meta Sep 2024, no replacement</i>');
-  if (R.ig_audience_geo?.status === 'fail') fails.push('IG audience demographics — <i>need instagram_manage_insights → go to App Review to enable</i>');
-  if (R.ig_post_metrics?.status === 'fail') fails.push('IG per-post insights — <i>need instagram_manage_insights → go to App Review to enable</i>');
-  if (R.fb_post_metrics?.status === 'fail') fails.push('FB per-post insights — <i>need pages_read_engagement → go to App Review to enable</i>');
-  if (R.fb_page_insights?.status === 'fail') fails.push('FB page engagement — <i>need pages_read_engagement → go to App Review to enable</i>');
-  if (R.ig_profile?.status === 'fail') fails.push(`IG profile — <i>${R.ig_profile.note}</i>`);
-  lines.push(fails.map(f => `&nbsp;&nbsp;&#8226; ${f}`).join('<br>'));
-
-  lines.push('<br><b>Conclusion:</b> ' + (R.ig_online_followers?.status === 'ok'
-    ? 'The key metric <b>online_followers</b> works! We can build personalized "Best Time to Post" for Instagram. For Facebook, we infer best times from historical post engagement.'
-    : 'Could not get online_followers. The IG account may need 100+ followers, or instagram_manage_insights permission is not granted.'));
-
-  c.innerHTML = lines.join('<br>');
+function formatHour(h) {
+  if (h === 0) return '12 AM';
+  if (h < 12) return `${h} AM`;
+  if (h === 12) return '12 PM';
+  return `${h - 12} PM`;
 }
 
 // ── Calendar ──
 function buildCal() {
   document.getElementById('cal-empty').style.display = 'none';
   document.getElementById('grid-wrap').style.display = 'block';
-  renderCal(document.querySelector('.tab.active')?.dataset.p || 'all');
+  renderCal(activeTab);
 }
+
 function switchTab(el) {
   if (el.classList.contains('disabled')) return;
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   el.classList.add('active');
-  renderCal(el.dataset.p);
+  activeTab = el.dataset.p;
+  updateLegend(activeTab);
+  renderCal(activeTab);
+}
+
+function updateLegend(p) {
+  const legend = document.getElementById('legend');
+  const suffix = (p === 'all') ? 'combined' : p;
+  legend.innerHTML = `
+    <div class="legend-i"><div class="swatch best-${suffix}"></div>Best time</div>
+    <div class="legend-i"><div class="swatch good-${suffix}"></div>Good time</div>
+    <div class="legend-i"><div class="swatch avoid-${suffix}"></div>Low activity</div>
+    <div class="legend-i"><div class="swatch none"></div>No data</div>
+  `;
 }
 
 function getScore(p, d, h) {
@@ -624,12 +777,33 @@ function getScore(p, d, h) {
   return 0;
 }
 
+function getTooltipDetail(p, d, h) {
+  if (p === 'ig') {
+    const ol = results.meta?.ig_online_followers?.data;
+    if (ol && typeof ol === 'object') {
+      const v = ol[String(h)] || 0;
+      return `${v.toLocaleString()} followers online`;
+    }
+  }
+  if (p === 'fb') {
+    const inf = results.meta?.fb_inferred_times?.data;
+    if (inf) {
+      const v = inf[`${d}-${h}`];
+      if (v !== undefined) return `${v} avg engagement`;
+    }
+  }
+  return '';
+}
+
 function renderCal(p) {
   const g = document.getElementById('grid');
   g.innerHTML = '';
+  const suffix = (p === 'all') ? 'combined' : p;
   const ce = (t,c,tx) => { const e = document.createElement(t); e.className = c; e.textContent = tx; return e; };
+
   g.appendChild(ce('div','gh',''));
   DAYS.forEach(d => g.appendChild(ce('div','gh',d)));
+
   for (let h = 0; h < 24; h++) {
     const tl = h===0?'12a':h<12?`${h}a`:h===12?'12p':`${h-12}p`;
     g.appendChild(ce('div','gt',tl));
@@ -639,12 +813,21 @@ function renderCal(p) {
         const ss = []; if (state.ig) ss.push(getScore('ig',d,h)); if (state.fb) ss.push(getScore('fb',d,h)); if (state.li) ss.push(getScore('li',d,h));
         sc = ss.length ? Math.round(ss.reduce((a,b)=>a+b,0)/ss.length) : 0;
       } else { sc = getScore(p,d,h); }
-      const cls = sc===3?'best':sc===2?'good':sc===1?'avoid':'';
-      const lbl = sc===3?'Best':sc===2?'Good':sc===1?'Avoid':'No data';
-      const lt = h===0?'12 AM':h<12?`${h} AM`:h===12?'12 PM':`${h-12} PM`;
+
+      const cls = sc===3?`best-${suffix}`:sc===2?`good-${suffix}`:sc===1?`avoid-${suffix}`:'';
+      const lbl = sc===3?'Best':sc===2?'Good':sc===1?'Low activity':'No data';
+      const lt = formatHour(h);
+
+      // Build tooltip
+      let tipText = `${DAYS[d]} ${lt} — ${lbl}`;
+      if (p !== 'all') {
+        const detail = getTooltipDetail(p, d, h);
+        if (detail) tipText += `<br>${detail}`;
+      }
+
       const c = document.createElement('div');
       c.className = `gc ${cls}`;
-      c.innerHTML = `<div class="tip">${DAYS[d]} ${lt} — ${lbl}</div>`;
+      c.innerHTML = `<div class="tip">${tipText}</div>`;
       g.appendChild(c);
     }
   }
