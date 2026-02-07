@@ -177,26 +177,6 @@
 
 <div class="layout">
 
-  <!-- Setup -->
-  <div class="setup-box" id="setup-meta">
-    <h3>Step 1 — Enter your Meta App ID</h3>
-    <p>Get it from <a href="https://developers.facebook.com/apps/" target="_blank">developers.facebook.com/apps</a> → your app → Settings → Basic</p>
-    <div class="setup-row">
-      <input type="text" id="meta-app-id-input" placeholder="Paste Meta App ID here (e.g. 123456789012345)">
-      <button class="setup-btn" onclick="saveMetaAppId()">Save</button>
-      <span class="setup-status" id="meta-app-status"></span>
-    </div>
-    <div class="setup-note">
-      <b>Required products in your Meta App:</b>
-      <ol>
-        <li>Go to your app → <b>Add Product</b> → add <b>"Facebook Login"</b> (NOT "for Business")</li>
-        <li>Add Product → <b>"Instagram Graph API"</b></li>
-        <li>Facebook Login → Settings → set JS SDK Login to <b>Yes</b>, add domain <code>mariaiontseva.github.io</code></li>
-        <li>Facebook Login → Settings → Valid OAuth Redirect URIs: <code>https://mariaiontseva.github.io/sq-best-time-to-post/</code></li>
-      </ol>
-    </div>
-  </div>
-
   <div class="section-heading">Platform Data Availability</div>
   <div class="cards">
 
@@ -317,12 +297,9 @@
 
 <!-- Facebook SDK -->
 <script>
+const META_APP_ID = '25982110374813401';
 window.fbAsyncInit = function() {
-  const appId = localStorage.getItem('meta_app_id');
-  if (appId) {
-    FB.init({ appId, cookie: true, xfbml: false, version: 'v21.0' });
-    document.getElementById('setup-meta').style.display = 'none';
-  }
+  FB.init({ appId: META_APP_ID, cookie: true, xfbml: false, version: 'v21.0' });
 };
 (function(d, s, id) {
   var js, fjs = d.getElementsByTagName(s)[0];
@@ -338,25 +315,16 @@ const DAYS = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
 const state = { ig: false, fb: false, li: false };
 const results = {};
 
-function saveMetaAppId() {
-  const val = document.getElementById('meta-app-id-input').value.trim();
-  if (!val || val.length < 10) { document.getElementById('meta-app-status').textContent = 'Invalid ID'; return; }
-  localStorage.setItem('meta_app_id', val);
-  FB.init({ appId: val, cookie: true, xfbml: false, version: 'v21.0' });
-  document.getElementById('setup-meta').style.display = 'none';
-  document.getElementById('meta-app-status').textContent = 'Saved!';
-}
+// ── Meta connect (Facebook Login for Business) ──
+// Uses config_id if available, falls back to scope-based login
+const META_CONFIG_ID = ''; // Set this after creating a Configuration in Meta Developer Console
+const LOGIN_SCOPES = 'pages_show_list,business_management';
 
-// ── Meta connect (client-side FB SDK) ──
-// Scopes: pages_show_list + business_management always work.
-// pages_read_engagement + instagram_manage_insights need the right products added to the app.
-// If they fail, we retry with minimal scopes and still fetch what we can.
-const FULL_SCOPES = 'pages_show_list,pages_read_engagement,pages_read_user_content,instagram_manage_insights,business_management';
-const MINIMAL_SCOPES = 'pages_show_list,business_management';
-
-function connectMeta(scopes) {
-  if (!window.FB) { alert('Enter your Meta App ID first'); return; }
-  scopes = scopes || FULL_SCOPES;
+function connectMeta() {
+  if (!window.FB) { alert('Facebook SDK not loaded. Check browser console.'); return; }
+  const opts = META_CONFIG_ID
+    ? { config_id: META_CONFIG_ID, response_type: 'token' }
+    : { scope: LOGIN_SCOPES };
   FB.login(function(response) {
     if (response.authResponse) {
       const token = response.authResponse.accessToken;
@@ -364,14 +332,10 @@ function connectMeta(scopes) {
       document.getElementById('dot-meta').classList.replace('off','on');
       document.getElementById('lbl-meta').textContent = 'Meta: connected';
       fetchMetaData(token);
-    } else if (response.status === 'unknown') {
-      // User cancelled or scopes were rejected — try minimal scopes
-      if (scopes !== MINIMAL_SCOPES) {
-        console.log('Full scopes failed, retrying with minimal...');
-        connectMeta(MINIMAL_SCOPES);
-      }
+    } else {
+      console.warn('FB login response:', response);
     }
-  }, { scope: scopes });
+  }, opts);
 }
 
 async function gql(path, token) {
@@ -612,11 +576,6 @@ function renderCal(p) {
   }
 }
 
-// Restore saved App ID
-(function() {
-  const saved = localStorage.getItem('meta_app_id');
-  if (saved) { document.getElementById('meta-app-id-input').value = saved; }
-})();
 </script>
 </body>
 </html>
