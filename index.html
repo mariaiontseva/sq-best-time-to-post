@@ -161,6 +161,18 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .mc-tag.real{background:rgba(16,185,129,.08);color:var(--ok)}
 .mc-tag.inferred{background:rgba(245,158,11,.08);color:var(--warn)}
 .mc-tag.industry{background:rgba(99,102,241,.08);color:#6366f1}
+.mc-formula{background:#fff;border:1px solid var(--g200);border-radius:6px;padding:12px 14px;margin:8px 0;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:12px;color:var(--g800);line-height:1.8}
+.mc-formula .f-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.mc-formula .f-eq{font-weight:800;color:var(--g900);font-size:14px}
+.mc-formula .f-op{color:var(--g400);font-weight:600}
+.mc-formula .f-term{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-weight:600;white-space:nowrap}
+.mc-formula .f-term.ig{background:rgba(225,48,108,.08);color:var(--ig)}
+.mc-formula .f-term.fb{background:rgba(24,119,242,.08);color:var(--fb)}
+.mc-formula .f-term.li{background:rgba(10,102,194,.08);color:var(--li)}
+.mc-formula .f-sub{font-size:10px;color:var(--g500);margin-top:4px}
+.mc-step{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
+.mc-step-num{width:18px;height:18px;border-radius:50%;background:var(--g200);color:var(--g600);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
+.mc-step-text{font-size:12px;color:var(--g500);line-height:1.5}
 
 /* ── Modal ── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
@@ -907,38 +919,71 @@ function swTab(el){
 // ── Methodology ──
 function buildMethodology(){
   const g=$('mcards');g.innerHTML='';
+  const w=signalInfo.combined?.weights||{};
 
-  // Algorithm overview
-  g.innerHTML+=`<div class="mc"><h4>How the score is calculated</h4><p>Each hour of the week gets a <strong>0–100 score</strong>. We combine signals from each connected platform using weighted averages. The final score = <strong>${Object.entries(signalInfo.combined?.weights||{}).map(([k,w])=>`${k.toUpperCase()} × ${Math.round(w*100)}%`).join(' + ')}</strong>. Higher score = more of your audience is active or engaged at that time.</p></div>`;
+  // 1. FORMULA
+  const terms=[];
+  if(w.ig)terms.push({k:'ig',label:'IG',pct:Math.round(w.ig*100),type:signalInfo.ig?.type});
+  if(w.fb)terms.push({k:'fb',label:'FB',pct:Math.round(w.fb*100),type:signalInfo.fb?.type});
+  if(w.li)terms.push({k:'li',label:'LI',pct:Math.round(w.li*100),type:signalInfo.li?.type});
+  const formulaTerms=terms.map((t,i)=>`${i>0?'<span class="f-op">+</span>':''}<span class="f-term ${t.k}">${t.label}(day,hour) × ${t.pct}%</span>`).join(' ');
 
+  g.innerHTML+=`<div class="mc" style="grid-column:1/-1">
+    <h4>Combined Score Formula</h4>
+    <div class="mc-formula">
+      <div class="f-line"><span class="f-eq">Score(day, hour)</span> <span class="f-op">=</span> ${formulaTerms}</div>
+      <div class="f-sub">Each platform produces a 0–1 score per (day, hour) slot. The combined score is the weighted sum, normalized. Higher = better time to post.</div>
+    </div>
+    <p style="margin-top:8px">Weights depend on data quality: platforms with real data get higher weight, platforms with no data get minimal weight so they don't distort results.</p>
+  </div>`;
+
+  // 2. PER-PLATFORM DETAILS
   if(state.ig){
     const si=signalInfo.ig;
     const igPosts=si.postCount||0;
-    let desc,tagClass,tagText;
+    let steps,tagClass,tagText;
     if(si.type==='real'){
-      desc=`<strong>Signal 1 — Online followers (80%):</strong> Hour-by-hour counts of when your ${fmt(si.peak)} followers are online. Peak at <strong>${fmtH(si.peakHour)}</strong>.<br><strong>Signal 2 — Post engagement (20%):</strong> Avg likes+comments per day from <strong>${igPosts} posts</strong>.`;
-      tagClass='real';tagText='Real-time data';
+      steps=`
+        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">Fetch <strong>online_followers</strong> from Meta API — 24 hourly values of how many followers are online</span></div>
+        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Normalize to 0–1: <code>(value − min) / (max − min)</code> → this is the hourly score (80% of IG)</span></div>
+        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Compute day-of-week factor from <strong>${igPosts} posts</strong>: avg (likes+comments) per day, normalized → (20% of IG)</span></div>
+        <div class="mc-step"><span class="mc-step-num">4</span><span class="mc-step-text"><strong>IG(day,hour) = hourly × 0.8 + dayFactor × 0.2</strong></span></div>`;
+      tagClass='real';tagText='Real-time data · peak '+fmt(si.peak)+' at '+fmtH(si.peakHour);
     }else if(si.type==='inferred'){
-      desc=`<strong>Signal — Post engagement by hour:</strong> From your <strong>${igPosts} IG posts</strong>, we compute avg likes+comments for each (day, hour) slot. Best: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong>.<br><strong>Coverage: ${si.coverage||0}%</strong> of the 168-hour week has real data. Gaps filled by averaging neighboring slots only — no made-up patterns.<br><em>online_followers API unavailable — using post history instead.</em>`;
-      tagClass='inferred';tagText='Inferred from '+igPosts+' posts';
+      steps=`
+        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">online_followers API unavailable — using post history instead</span></div>
+        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">From <strong>${igPosts} posts</strong>: group by (day, hour) of posting, compute avg (likes + comments) per slot</span></div>
+        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Normalize to 0–1: <code>(avgEngagement − min) / (max − min)</code></span></div>
+        <div class="mc-step"><span class="mc-step-num">4</span><span class="mc-step-text"><strong>Coverage: ${si.coverage||0}%</strong> of 168 weekly hours have real data. Gaps filled by averaging adjacent slots (±2h, ±1day). No data = 0.5 (neutral)</span></div>`;
+      tagClass='inferred';tagText='From '+igPosts+' posts · best: '+DAYS[si.bestDay]+' '+fmtH(si.bestHour);
     }else{
-      desc=`<strong>No IG data available</strong> — no posts and no online_followers data. All hours scored equally (0.5). This platform has minimal influence on the combined score (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}%).`;
+      steps=`<div class="mc-step"><span class="mc-step-num">—</span><span class="mc-step-text">No posts, no online_followers data. All slots = 0.5 (neutral). Weight reduced to ${Math.round((w.ig||0)*100)}% to minimize impact.</span></div>`;
       tagClass='industry';tagText='No data';
     }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${tagClass}">${tagText}</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram · ${Math.round((w.ig||0)*100)}% weight</h4>${steps}<span class="mc-tag ${tagClass}">${tagText}</span></div>`;
   }
+
   if(state.fb){
     const sf=signalInfo.fb;
-    let desc;
+    let steps;
     if(sf.type==='real'){
-      desc=`<strong>Signal — Post engagement by hour:</strong> From your last <strong>${sf.postCount} FB posts</strong>, we compute average engagement (reactions + comments + shares) for each (day, hour) slot. Best: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong>. Hours with no posts use neighbor interpolation + IG data as proxy.`;
+      steps=`
+        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">From <strong>${sf.postCount} FB posts</strong>: group by (day, hour), compute avg engagement (reactions + comments + shares) per slot</span></div>
+        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Normalize to 0–1: <code>(avgEngagement − min) / (max − min)</code></span></div>
+        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Gaps: 60% from neighbor average, 40% from IG score as proxy</span></div>`;
     }else{
-      desc=`<strong>No FB post data available</strong>. All hours scored equally (0.5) — no influence on recommendations. Meta deprecated page_fans_online in Sep 2024.`;
+      steps=`<div class="mc-step"><span class="mc-step-num">—</span><span class="mc-step-text">No FB post data. All slots = 0.5 (neutral). Weight reduced to ${Math.round((w.fb||0)*100)}%.</span></div>`;
     }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'From '+sf.postCount+' posts':'No data'}</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook · ${Math.round((w.fb||0)*100)}% weight</h4>${steps}<span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'From '+sf.postCount+' posts · best: '+DAYS[sf.bestDay]+' '+fmtH(sf.bestHour):'No data'}</span></div>`;
   }
+
   if(state.li){
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}% weight)</h4><p><strong>Industry data</strong> — LinkedIn API has no "followers online" endpoint. Scores based on aggregated research (2.7B engagements across 436K profiles). Peak: <strong>Tue–Thu, 10–11 AM</strong>. Secondary: 8–9 AM, 12 PM. Weekends 15–20%. Note: not adjusted for your audience timezone or industry.</p><span class="mc-tag industry">Industry data (2025)</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn · ${Math.round((w.li||0)*100)}% weight</h4>
+      <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">LinkedIn API has no "followers online" endpoint — no personalized data possible</span></div>
+      <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Using aggregated industry data: 2.7B engagements, 436K profiles (Sprout Social, 2025)</span></div>
+      <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Peak: <strong>Tue–Thu, 10–11 AM</strong>. Secondary: 8–9 AM, noon. Weekends: 15–20%. Day multipliers: Tue/Wed/Thu ×1.0, Mon ×0.8, Fri ×0.75</span></div>
+      <div class="mc-step"><span class="mc-step-num">⚠</span><span class="mc-step-text">Not adjusted for your audience timezone or industry. Treat as general guidance only.</span></div>
+    <span class="mc-tag industry">Industry data (2025)</span></div>`;
   }
 }
 
