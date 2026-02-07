@@ -90,29 +90,24 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .sigs{display:none;margin-bottom:20px}
 .sigs.show{display:block;animation:fadeUp .3s}
 .stitle{font-size:12px;font-weight:700;color:var(--g800);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
-.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
-.sig{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:16px;border-left:3px solid transparent}
-.sig.ig-accent{border-left-color:var(--ig)}
-.sig.fb-accent{border-left-color:var(--fb)}
-.sig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
-.sig-plat{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
-.sig-plat.ig{background:rgba(225,48,108,.08);color:var(--ig)}
-.sig-plat.fb{background:rgba(24,119,242,.08);color:var(--fb)}
-.sig-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px}
-.sig-badge.ok{background:rgba(16,185,129,.12);color:var(--ok);font-weight:700}
-.sig-name{font-size:13px;font-weight:600;color:var(--g800);margin-bottom:2px}
-.sig-val{font-size:22px;font-weight:800;color:var(--g900);line-height:1.2}
-.sig-desc{font-size:11px;color:var(--g500);margin-top:4px;line-height:1.4}
-.sig-wt{margin-top:10px;padding-top:8px;border-top:1px solid var(--g100)}
-.sig-wt-bar{height:4px;border-radius:2px;background:var(--g100);overflow:hidden;margin-bottom:4px}
-.sig-wt-fill{height:100%;border-radius:2px;background:var(--ok)}
-.sig-wt-label{font-size:10px;font-weight:600;color:var(--g400)}
+.sgrid{display:flex;flex-direction:column;gap:8px}
+.sig{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px 20px;display:flex;align-items:center;gap:14px}
+.sig-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sig-icon.ig{background:linear-gradient(135deg,#833ab4,#E1306C)}
+.sig-icon.fb{background:var(--fb)}
+.sig-icon svg{width:18px;height:18px;fill:#fff}
+.sig-body{flex:1;min-width:0}
+.sig-head{display:flex;align-items:baseline;gap:8px;margin-bottom:2px}
+.sig-plat{font-size:14px;font-weight:700;color:var(--g900)}
+.sig-meta{font-size:12px;color:var(--g400)}
+.sig-insight{font-size:13px;color:var(--g600);line-height:1.4}
+.sig-insight strong{color:var(--g800)}
 
 /* ── Recs ── */
 .recs{display:none;margin-bottom:20px}
 .recs.show{display:block;animation:fadeUp .3s}
 .rdesc{font-size:12px;color:var(--g500);margin-bottom:10px;line-height:1.5}
-.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.rgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
 .rec{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px;text-align:center}
 .rec-rank{font-size:9px;font-weight:700;color:var(--g400);letter-spacing:.06em;margin-bottom:6px}
 .rec-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-bottom:4px}
@@ -121,7 +116,6 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .rec-time{font-size:20px;font-weight:800;color:var(--g900)}
 .rec-day{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
 .rec-why{font-size:10px;color:var(--g500)}
-.rec-tip{font-size:11px;color:var(--g400);margin-top:14px;text-align:center;line-height:1.5;font-style:italic}
 
 /* ── Calendar ── */
 .sched{display:none;margin-bottom:24px}
@@ -174,7 +168,7 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 @media(max-width:768px){
   .topbar{padding:0 12px}.topbar-r{gap:4px}.nbtn{padding:0 8px;font-size:11px;gap:4px}
   .main{padding:16px 12px 60px}.hero h1{font-size:22px}.hero-cta{height:44px;padding:0 24px;font-size:14px;margin-top:14px}
-  .profiles{grid-template-columns:1fr}.sgrid{grid-template-columns:1fr 1fr}
+  .profiles{grid-template-columns:1fr}.rgrid{grid-template-columns:repeat(3,1fr)}
   .chead{flex-direction:column;align-items:flex-start}.ccard{padding:16px}
 }
 </style>
@@ -698,37 +692,23 @@ function heatColor(val,pal){
 // ── Signal Cards ──
 function buildSignalCards(){
   const g=$('sgrid');g.innerHTML='';
+  const igSvg='<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
+  const fbSvg='<svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
   if(state.ig&&signalInfo.ig?.type!=='fallback'){
     const si=signalInfo.ig;
-    const wPct=si?.weight?Math.round(si.weight*100):0;
-    let sigName,sigVal,sigDesc;
+    let meta,insight;
     if(si?.type==='real'){
-      sigName='Your Audience Peak Hours';
-      sigVal=fmt(si.peak)+' at '+fmtH(si.peakHour);
-      sigDesc='We see exactly when your followers open Instagram. This is the strongest signal in your schedule.';
+      meta='Live follower data';
+      insight='Peak: <strong>'+fmt(si.peak)+' followers at '+fmtH(si.peakHour)+'</strong>';
     }else{
-      sigName='Engagement Pattern Analysis';
-      sigVal=(si.postCount||0)+' posts analyzed';
-      sigDesc='Your best engagement: '+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+'. Enhanced with industry research for time slots you haven\'t tried yet.';
+      meta=si.postCount+' posts analyzed';
+      insight='Best engagement: <strong>'+DAYS[si.bestDay]+'s at '+fmtH(si.bestHour)+'</strong>';
     }
-    g.innerHTML+=`<div class="sig ig-accent">
-      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ok">${si?.type==='real'?'LIVE DATA':'ANALYZED'}</span></div>
-      <div class="sig-name">${sigName}</div>
-      <div class="sig-val">${sigVal}</div>
-      <div class="sig-desc">${sigDesc}</div>
-      <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:${wPct}%"></div></div><div class="sig-wt-label">Drives ${wPct}% of recommendations</div></div>
-    </div>`;
+    g.innerHTML+=`<div class="sig"><div class="sig-icon ig">${igSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Instagram</span><span class="sig-meta">${meta}</span></div><div class="sig-insight">${insight}</div></div></div>`;
   }
   if(state.fb&&signalInfo.fb?.type==='real'){
     const sf=signalInfo.fb;
-    const wPct=sf?.weight?Math.round(sf.weight*100):0;
-    g.innerHTML+=`<div class="sig fb-accent">
-      <div class="sig-top"><span class="sig-plat fb">Facebook</span><span class="sig-badge ok">ANALYZED</span></div>
-      <div class="sig-name">Post Performance Analysis</div>
-      <div class="sig-val">${sf.postCount} posts analyzed</div>
-      <div class="sig-desc">Strongest engagement: ${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}. Reactions, comments, and shares mapped across your posting history.</div>
-      <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:${wPct}%"></div></div><div class="sig-wt-label">Drives ${wPct}% of recommendations</div></div>
-    </div>`;
+    g.innerHTML+=`<div class="sig"><div class="sig-icon fb">${fbSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Facebook</span><span class="sig-meta">${sf.postCount} posts analyzed</span></div><div class="sig-insight">Best engagement: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong></div></div></div>`;
   }
   if(g.innerHTML)$('sigs').classList.add('show');
 }
@@ -768,7 +748,6 @@ function buildRecs(){
     const pLabel=topP==='ig'?'Instagram':'Facebook';
     g.innerHTML+=`<div class="rec"><div class="rec-rank">#${i+1}</div><span class="rec-tag ${topP}">${pLabel}</span><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${why}</div></div>`;
   }
-  g.innerHTML+=`<p class="rec-tip">These times reflect when your audience engages, not just when you've posted before. Trying a new recommended slot could unlock hidden reach.</p>`;
   $('recs').classList.add('show');
 }
 
