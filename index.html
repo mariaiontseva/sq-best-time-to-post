@@ -501,18 +501,6 @@ async function fetchMetaData(token){
     $('feed-status').textContent='Analysis complete';
     setMetaBtnDone();
 
-    // Auto-collapse feed after 2.5s
-    setTimeout(()=>{
-      const fl=$('feed-list');
-      const head=document.querySelector('.feed-head span:first-child');
-      if(fl&&head){
-        fl.style.maxHeight=fl.scrollHeight+'px';
-        fl.style.transition='max-height 0.4s ease, opacity 0.3s ease';
-        fl.style.overflow='hidden';
-        setTimeout(()=>{fl.style.maxHeight='0';fl.style.opacity='0'},50);
-        setTimeout(()=>{fl.style.display='none';head.textContent='Analysis complete — scroll down for your results'},500);
-      }
-    },2500);
 
   }catch(e){
     console.error('fetchMetaData error:',e);
