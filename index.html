@@ -7,295 +7,274 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
-  --ig:#E1306C;--ig-bg:#fdf2f8;--fb:#1877F2;--fb-bg:#eff6ff;--li:#0A66C2;--li-bg:#f0f9ff;
-  --ok:#10b981;--ok-bg:#ecfdf5;--warn:#f59e0b;--warn-bg:#fffbeb;--err:#ef4444;--err-bg:#fef2f2;
-  --bg:#f8fafc;--surface:#fff;--border:#e2e8f0;--border-light:#f1f5f9;
-  --t1:#0f172a;--t2:#475569;--t3:#94a3b8;--t4:#cbd5e1;
-  --r:10px;--r-lg:14px;
-  --s-xs:0 1px 2px rgba(0,0,0,.04);--s-sm:0 1px 3px rgba(0,0,0,.06);
-  --s:0 2px 8px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --ig:#E1306C;--fb:#1877F2;--li:#0A66C2;
+  --ok:#10b981;--warn:#f59e0b;--err:#ef4444;
+  --g50:#fafafa;--g100:#f4f4f5;--g200:#e4e4e7;--g300:#d4d4d8;
+  --g400:#a1a1aa;--g500:#71717a;--g600:#52525b;--g700:#3f3f46;--g800:#27272a;--g900:#18181b;
+  --r:10px;--sh:0 1px 2px rgba(0,0,0,.04);
 }
 *{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--t1);-webkit-font-smoothing:antialiased}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--g800);-webkit-font-smoothing:antialiased}
 
-/* ── Navbar ── */
-.nav{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;height:52px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100}
-.nav-brand{display:flex;align-items:center;gap:10px}
-.nav-logo{width:28px;height:28px;background:linear-gradient(135deg,#833ab4,#E1306C,#1877F2);border-radius:8px;display:flex;align-items:center;justify-content:center}
-.nav-logo svg{width:15px;height:15px}
-.nav-title{font-size:14px;font-weight:700;color:var(--t1)}
-.nav-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px;background:#eef2ff;color:#6d28d9;letter-spacing:.04em}
-.nav-actions{display:flex;gap:8px}
-.nav-btn{display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:none;border-radius:8px;font-family:inherit;font-size:12px;font-weight:600;color:#fff;cursor:pointer;transition:all .15s;white-space:nowrap}
-.nav-btn:hover{opacity:.9;transform:translateY(-1px)}
-.nav-btn.meta{background:linear-gradient(135deg,#833ab4,#E1306C)}
-.nav-btn.linkedin{background:var(--li)}
-.nav-btn.connected{background:var(--ok)}
-.nav-btn.connected:hover{background:#059669}
-.nav-btn svg{width:14px;height:14px;flex-shrink:0}
-.nav-btn .spin{width:14px;height:14px;border:2px solid rgba(255,255,255,.3);border-top-color:#fff;border-radius:50%;animation:spin .6s linear infinite}
+/* ── Topbar ── */
+.topbar{position:sticky;top:0;z-index:100;height:52px;background:#fff;border-bottom:1px solid var(--g200);display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.topbar-l{display:flex;align-items:center;gap:10px}
+.tlogo{width:28px;height:28px;background:linear-gradient(135deg,#833ab4,#E1306C,#1877F2);border-radius:8px;display:flex;align-items:center;justify-content:center}
+.tlogo svg{width:15px;height:15px}
+.tbrand{font-size:14px;font-weight:700;color:var(--g900)}
+.tbadge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--g100);color:var(--g500);letter-spacing:.05em}
+.topbar-r{display:flex;gap:8px}
+.nbtn{display:flex;align-items:center;gap:6px;height:32px;padding:0 14px;border:1px solid var(--g200);border-radius:8px;background:#fff;font-family:inherit;font-size:12px;font-weight:600;color:var(--g600);cursor:pointer;transition:all .15s;white-space:nowrap}
+.nbtn:hover{border-color:var(--g300);background:var(--g50)}
+.nbtn.meta{border-color:rgba(225,48,108,.25);color:var(--ig)}
+.nbtn.meta:hover{background:rgba(225,48,108,.04)}
+.nbtn.linkedin{border-color:rgba(10,102,194,.25);color:var(--li)}
+.nbtn.linkedin:hover{background:rgba(10,102,194,.04)}
+.nbtn.done{border-color:var(--ok);color:var(--ok);cursor:default}
+.nbtn.done:hover{background:#fff}
+.nbtn svg{width:14px;height:14px;flex-shrink:0}
 
-/* ── Main ── */
-.main{max-width:960px;margin:0 auto;padding:24px 20px 64px}
+/* ── Layout ── */
+.main{max-width:960px;margin:0 auto;padding:24px 20px 80px}
 
-/* ── Empty state ── */
-.empty{text-align:center;padding:80px 20px}
-.empty-icon{font-size:48px;margin-bottom:16px;opacity:.25}
-.empty h2{font-size:24px;font-weight:800;color:var(--t1);margin-bottom:8px}
-.empty p{font-size:14px;color:var(--t3);max-width:420px;margin:0 auto 28px;line-height:1.6}
-.empty-btns{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
-.big-btn{display:inline-flex;align-items:center;gap:10px;padding:13px 24px;border:none;border-radius:12px;font-family:inherit;font-size:14px;font-weight:600;color:#fff;cursor:pointer;transition:all .15s}
-.big-btn:hover{transform:translateY(-1px);box-shadow:var(--s)}
-.big-btn.meta{background:linear-gradient(135deg,#833ab4,#E1306C,#fd1d1d)}
-.big-btn.linkedin{background:var(--li)}
-.big-btn svg{width:18px;height:18px}
+/* ── Hero ── */
+.hero{text-align:center;padding:60px 0 32px;transition:all .4s}
+.hero.gone{display:none}
+.hero h1{font-size:30px;font-weight:800;letter-spacing:-.03em;color:var(--g900);margin-bottom:10px}
+.hero p{font-size:15px;color:var(--g500);max-width:440px;margin:0 auto;line-height:1.6}
 
-/* ── Pipeline ── */
-.pipeline{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;display:none}
-.pipeline.show{display:block;animation:fadeIn .3s}
-.pipe-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
-.pipe-title{font-size:13px;font-weight:700;color:var(--t1)}
-.pipe-status{font-size:11px;color:var(--t3)}
-.stp{display:flex;align-items:center;gap:10px;padding:6px 0;font-size:12px;color:var(--t3);transition:color .2s}
-.stp.on{color:var(--t1)}.stp.ok{color:var(--ok)}.stp.er{color:var(--err)}
-.stp-i{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:9px;transition:all .2s}
-.stp.on .stp-i{border-color:#6366f1;background:#eef2ff}
-.stp.on .stp-i::after{content:'';width:6px;height:6px;border-radius:50%;background:#6366f1;animation:pulse 1s infinite}
-.stp.ok .stp-i{border-color:var(--ok);background:var(--ok-bg);color:var(--ok)}
-.stp.ok .stp-i::after{content:'✓';font-weight:700;animation:none}
-.stp.er .stp-i{border-color:var(--err);background:var(--err-bg);color:var(--err)}
-.stp.er .stp-i::after{content:'✗';font-weight:700;animation:none}
-.stp-lbl{flex:1;font-weight:500}
-.stp-dtl{font-size:11px;color:var(--t3);text-align:right;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.stp.ok .stp-dtl{color:var(--t2)}
-.pipe-summary{margin-top:12px;padding-top:12px;border-top:1px solid var(--border-light);font-size:12px;color:var(--t2);display:none}
-.pipe-summary.show{display:block}
-.pipe-summary strong{color:var(--t1)}
+/* ── Feed ── */
+.feed-panel{display:none;background:#fff;border:1px solid var(--g200);border-radius:var(--r);margin-bottom:20px;overflow:hidden}
+.feed-panel.show{display:block;animation:fadeUp .3s}
+.feed-head{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--g100);font-size:12px;font-weight:700;color:var(--g800)}
+.feed-status{font-weight:600;color:var(--ok)}
+.fi{display:flex;align-items:center;gap:10px;padding:9px 16px;border-bottom:1px solid var(--g100);font-size:12px;animation:slideIn .2s}
+.fi:last-child{border-bottom:none}
+.fi-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0;background:var(--g300)}
+.fi.active .fi-dot{background:var(--ig);animation:pulse .8s infinite}
+.fi.done .fi-dot{background:var(--ok)}
+.fi.warn .fi-dot{background:var(--warn)}
+.fi.fail .fi-dot{background:var(--err)}
+.fi-label{color:var(--g600);flex:1;min-width:0}
+.fi.done .fi-label{color:var(--g700)}
+.fi-val{color:var(--g400);font-size:11px;text-align:right;flex-shrink:0;max-width:55%}
+.fi.done .fi-val{color:var(--g500)}
+.fi.warn .fi-val{color:var(--warn)}
+.fi.fail .fi-val{color:var(--err)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes slideIn{from{opacity:0;transform:translateX(-6px)}to{opacity:1;transform:none}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-/* ── Profiles ── */
-.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px}
-.pcard{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:18px;display:none}
-.pcard.show{display:block;animation:fadeIn .3s}
+/* ── Profile Cards ── */
+.profiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:20px}
+.pcard{display:none;background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:20px}
+.pcard.show{display:block;animation:fadeUp .3s}
 .pcard-top{display:flex;align-items:center;gap:12px;margin-bottom:14px}
-.pcard-av{width:44px;height:44px;border-radius:11px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0;overflow:hidden}
-.pcard-av.ig{background:linear-gradient(135deg,#833ab4,#E1306C)}.pcard-av.fb{background:var(--fb)}
-.pcard-av img{width:100%;height:100%;object-fit:cover;display:block}
-.pcard-name{font-size:14px;font-weight:700;color:var(--t1)}
-.pcard-handle{font-size:11px;color:var(--t3);margin-top:1px}
-.pcard-cat{font-size:10px;font-weight:600;margin-top:2px}
-.pcard-cat.ig{color:var(--ig)}.pcard-cat.fb{color:var(--fb)}
-.pcard-stats{display:flex;gap:16px;padding-top:12px;border-top:1px solid var(--border-light)}
-.ps-item{text-align:center}
-.ps-val{font-size:17px;font-weight:800;color:var(--t1)}
-.ps-lbl{font-size:9px;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-top:1px}
-.pcard-badge{display:inline-flex;font-size:9px;font-weight:700;padding:2px 8px;border-radius:99px;margin-top:10px}
-.pcard-badge.ig{background:var(--ig-bg);color:var(--ig)}.pcard-badge.fb{background:var(--fb-bg);color:var(--fb)}
+.av{width:44px;height:44px;border-radius:12px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.av.ig{background:linear-gradient(135deg,#833ab4,#E1306C)}
+.av.fb{background:var(--fb)}
+.av img{width:100%;height:100%;object-fit:cover}
+.pname{font-size:15px;font-weight:700;color:var(--g900)}
+.phandle{font-size:12px;color:var(--g500);margin-top:1px}
+.pcat{font-size:11px;font-weight:600;margin-top:2px;color:var(--ig)}
+.pcat.fb{color:var(--fb)}
+.pstats{display:flex;gap:16px;padding-top:12px;border-top:1px solid var(--g100)}
+.ps{text-align:center}
+.ps-n{font-size:17px;font-weight:800;color:var(--g900);display:block}
+.ps-l{font-size:10px;color:var(--g500);text-transform:uppercase;letter-spacing:.04em}
 
-/* ── Signals ── */
-.signals{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:20px 24px;margin-bottom:20px;display:none}
-.signals.show{display:block;animation:fadeIn .3s}
-.sig-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:14px}
-.sig-platform{margin-bottom:14px}
-.sig-platform:last-child{margin-bottom:0}
-.sig-phdr{display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap}
-.sig-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
-.sig-dot.ig{background:var(--ig)}.sig-dot.fb{background:var(--fb)}.sig-dot.li{background:var(--li)}
-.sig-pname{font-size:12px;font-weight:700;color:var(--t1)}
-.sig-weight{font-size:10px;color:var(--t3)}
-.sig-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:99px}
-.sig-badge.real{background:var(--ok-bg);color:var(--ok)}
-.sig-badge.inferred{background:var(--warn-bg);color:var(--warn)}
-.sig-badge.industry{background:#eef2ff;color:#6366f1}
-.sig-row{display:flex;align-items:center;gap:6px;padding:3px 0 3px 15px;font-size:11px;color:var(--t2)}
-.sig-row .ck{color:var(--ok);font-weight:700;flex-shrink:0}
-.sig-row .xk{color:var(--err);font-weight:700;flex-shrink:0}
-
-/* ── Calendar ── */
-.cal{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;margin-bottom:20px}
-.cal-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
-.cal-title{font-size:15px;font-weight:700;color:var(--t1)}
-.tabs{display:flex;gap:2px;background:var(--border-light);border-radius:8px;padding:2px}
-.tab{padding:5px 12px;border-radius:6px;border:none;background:0;font-family:inherit;font-size:11px;font-weight:500;color:var(--t3);cursor:pointer;transition:all .15s}
-.tab:hover{color:var(--t2)}
-.tab.active{background:var(--surface);color:var(--t1);box-shadow:var(--s-xs);font-weight:600}
-.tab.off{opacity:.35;cursor:not-allowed}
-.legend{display:flex;align-items:center;gap:6px;margin-bottom:14px}
-.leg-bar{width:120px;height:10px;border-radius:3px}
-.leg-bar.combined{background:linear-gradient(90deg,#f0fdf4,#86efac,#22c55e,#15803d)}
-.leg-bar.ig{background:linear-gradient(90deg,#fdf2f8,#f9a8d4,#ec4899,#be185d)}
-.leg-bar.fb{background:linear-gradient(90deg,#eff6ff,#93c5fd,#3b82f6,#1e40af)}
-.leg-bar.li{background:linear-gradient(90deg,#f0f9ff,#7dd3fc,#0ea5e9,#0369a1)}
-.leg-lbl{display:flex;justify-content:space-between;width:120px;font-size:9px;color:var(--t3)}
-.grid-wrap{overflow-x:auto}
-.grid{display:grid;grid-template-columns:44px repeat(7,1fr);gap:2px;min-width:540px}
-.gh{font-size:10px;font-weight:600;color:var(--t3);text-align:center;padding:5px 0}
-.gt{font-size:9px;color:var(--t3);text-align:right;padding-right:6px;display:flex;align-items:center;justify-content:flex-end;font-weight:500}
-.gc{height:24px;border-radius:3px;background:var(--border-light);cursor:default;position:relative;transition:outline .1s}
-.gc:hover{outline:2px solid var(--t1);outline-offset:-1px;z-index:2}
-.gc .tip{display:none;position:absolute;bottom:calc(100% + 7px);left:50%;transform:translateX(-50%);background:var(--t1);color:#fff;font-size:10px;font-weight:500;padding:7px 10px;border-radius:7px;white-space:nowrap;z-index:10;pointer-events:none;line-height:1.4;box-shadow:0 4px 16px rgba(0,0,0,.15)}
-.gc .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--t1)}
-.gc:hover .tip{display:block}
+/* ── Signal Cards ── */
+.sigs{display:none;margin-bottom:20px}
+.sigs.show{display:block;animation:fadeUp .3s}
+.stitle{font-size:12px;font-weight:700;color:var(--g800);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.sgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.sig{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:16px}
+.sig-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sig-plat{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;text-transform:uppercase;letter-spacing:.04em}
+.sig-plat.ig{background:rgba(225,48,108,.08);color:var(--ig)}
+.sig-plat.fb{background:rgba(24,119,242,.08);color:var(--fb)}
+.sig-badge{font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px}
+.sig-badge.ok{background:rgba(16,185,129,.08);color:var(--ok)}
+.sig-badge.warn{background:rgba(245,158,11,.08);color:var(--warn)}
+.sig-badge.fail{background:rgba(239,68,68,.08);color:var(--err)}
+.sig-name{font-size:13px;font-weight:600;color:var(--g800);margin-bottom:2px}
+.sig-val{font-size:22px;font-weight:800;color:var(--g900);line-height:1.2}
+.sig-desc{font-size:11px;color:var(--g500);margin-top:4px;line-height:1.4}
+.sig-wt{margin-top:10px;padding-top:8px;border-top:1px solid var(--g100)}
+.sig-wt-bar{height:4px;border-radius:2px;background:var(--g100);overflow:hidden;margin-bottom:4px}
+.sig-wt-fill{height:100%;border-radius:2px;background:var(--ok)}
+.sig-wt-label{font-size:10px;font-weight:600;color:var(--g400)}
 
 /* ── Recs ── */
 .recs{display:none;margin-bottom:20px}
-.recs.show{display:block;animation:fadeIn .3s}
-.recs-title{font-size:13px;font-weight:700;color:var(--t1);margin-bottom:3px}
-.recs-desc{font-size:11px;color:var(--t3);margin-bottom:14px}
-.recs-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
-.rc{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:14px;text-align:center}
-.rc-rank{font-size:9px;font-weight:700;color:var(--t3);text-transform:uppercase;letter-spacing:.05em;margin-bottom:5px}
-.rc-time{font-size:19px;font-weight:800;color:var(--t1)}
-.rc-day{font-size:12px;font-weight:600;color:var(--t2);margin-bottom:5px}
-.rc-plat{display:inline-flex;font-size:8px;font-weight:700;padding:2px 7px;border-radius:99px;margin-bottom:5px}
-.rc-plat.ig{background:var(--ig-bg);color:var(--ig)}.rc-plat.fb{background:var(--fb-bg);color:var(--fb)}.rc-plat.li{background:var(--li-bg);color:var(--li)}
-.rc-why{font-size:10px;color:var(--t3);line-height:1.3}
+.recs.show{display:block;animation:fadeUp .3s}
+.rdesc{font-size:12px;color:var(--g500);margin-bottom:10px}
+.rgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(155px,1fr));gap:10px}
+.rec{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:14px;text-align:center}
+.rec-rank{font-size:9px;font-weight:700;color:var(--g400);letter-spacing:.06em;margin-bottom:6px}
+.rec-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-bottom:4px}
+.rec-tag.ig{background:rgba(225,48,108,.08);color:var(--ig)}
+.rec-tag.fb{background:rgba(24,119,242,.08);color:var(--fb)}
+.rec-tag.li{background:rgba(10,102,194,.08);color:var(--li)}
+.rec-time{font-size:20px;font-weight:800;color:var(--g900)}
+.rec-day{font-size:12px;font-weight:600;color:var(--g600);margin-bottom:5px}
+.rec-why{font-size:10px;color:var(--g500)}
 
-/* ── LinkedIn Modal ── */
-.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
-.modal-bg.show{display:flex}
-.modal{background:var(--surface);border-radius:var(--r-lg);padding:24px;max-width:400px;width:90%;box-shadow:0 8px 32px rgba(0,0,0,.12);animation:fadeIn .2s}
-.modal h3{font-size:15px;font-weight:700;margin-bottom:6px}
-.modal p{font-size:12px;color:var(--t2);line-height:1.5;margin-bottom:14px}
-.modal input{width:100%;padding:9px 10px;border:1px solid var(--border);border-radius:7px;font-family:'SF Mono','Fira Code',monospace;font-size:11px}
-.modal input:focus{outline:none;border-color:var(--li);box-shadow:0 0 0 3px rgba(10,102,194,.1)}
-.modal-btns{display:flex;gap:8px;margin-top:12px;justify-content:flex-end}
-.modal-btns button{padding:8px 16px;border-radius:7px;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
-.modal-cancel{border:1px solid var(--border);background:var(--surface);color:var(--t2)}
-.modal-ok{border:none;background:var(--li);color:#fff}
+/* ── Calendar ── */
+.sched{display:none;margin-bottom:24px}
+.sched.show{display:block;animation:fadeUp .3s}
+.ccard{background:#fff;border:1px solid var(--g200);border-radius:var(--r);padding:24px}
+.chead{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px;flex-wrap:wrap;gap:10px}
+.ctitle{font-size:16px;font-weight:700;color:var(--g900)}
+.tabs{display:flex;gap:2px;background:var(--g100);border-radius:8px;padding:2px}
+.tab{padding:6px 14px;border-radius:6px;border:none;background:transparent;font-family:inherit;font-size:12px;font-weight:500;color:var(--g500);cursor:pointer;transition:all .15s}
+.tab:hover{color:var(--g700)}
+.tab.on{background:#fff;color:var(--g800);box-shadow:var(--sh);font-weight:600}
+.tab.off{opacity:.35;cursor:not-allowed}
+.leg{display:flex;align-items:center;gap:8px;margin-bottom:14px}
+.lbar{width:140px;height:10px;border-radius:3px}
+.lbar.combined{background:linear-gradient(90deg,#f0fdf4,#86efac,#22c55e,#15803d)}
+.lbar.ig{background:linear-gradient(90deg,#fce4ec,#f48fb1,#e91e63,#ad1457)}
+.lbar.fb{background:linear-gradient(90deg,#e3f2fd,#64b5f6,#1877F2,#0d47a1)}
+.lbar.li{background:linear-gradient(90deg,#e1f0fa,#64b5f6,#0A66C2,#003d82)}
+.llbl{display:flex;justify-content:space-between;width:140px;font-size:9px;color:var(--g400)}
+.gwrap{overflow-x:auto}
+.grid{display:grid;grid-template-columns:48px repeat(7,1fr);gap:2px;min-width:600px}
+.gh{font-size:10px;font-weight:600;color:var(--g400);text-align:center;padding:6px 0;letter-spacing:.03em}
+.gt{font-size:9px;color:var(--g400);text-align:right;padding-right:8px;display:flex;align-items:center;justify-content:flex-end}
+.gc{height:24px;border-radius:3px;background:var(--g100);position:relative;cursor:default;transition:outline .1s}
+.gc:hover{outline:2px solid var(--g800);outline-offset:-1px;z-index:2}
+.gc .tip{display:none;position:absolute;bottom:calc(100% + 6px);left:50%;transform:translateX(-50%);background:var(--g900);color:#fff;font-size:11px;font-weight:500;padding:6px 10px;border-radius:6px;white-space:nowrap;z-index:10;pointer-events:none;line-height:1.4;box-shadow:0 4px 12px rgba(0,0,0,.15)}
+.gc .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--g900)}
+.gc:hover .tip{display:block}
 
-@keyframes fadeIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
-@keyframes spin{to{transform:rotate(360deg)}}
+/* ── Methodology ── */
+.meth{margin-top:20px;padding-top:18px;border-top:1px solid var(--g100)}
+.mtitle{font-size:12px;font-weight:700;color:var(--g800);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
+.mcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
+.mc{background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:14px}
+.mc h4{font-size:13px;font-weight:700;color:var(--g800);margin-bottom:5px;display:flex;align-items:center;gap:6px}
+.mc p{font-size:12px;color:var(--g500);line-height:1.5}
+.mc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.mc-dot.ig{background:var(--ig)}.mc-dot.fb{background:var(--fb)}.mc-dot.li{background:var(--li)}
+.mc-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:8px}
+.mc-tag.real{background:rgba(16,185,129,.08);color:var(--ok)}
+.mc-tag.inferred{background:rgba(245,158,11,.08);color:var(--warn)}
+.mc-tag.industry{background:rgba(99,102,241,.08);color:#6366f1}
+
+/* ── Modal ── */
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal.show{display:flex}
+.mbox{background:#fff;border-radius:12px;padding:24px;max-width:400px;width:90%;box-shadow:0 8px 24px rgba(0,0,0,.12);animation:fadeUp .2s}
+.mbox h3{font-size:15px;font-weight:700;margin-bottom:6px}
+.mbox p{font-size:12px;color:var(--g500);line-height:1.5;margin-bottom:12px}
+.mbox a{color:var(--li)}
+.mbox input{width:100%;padding:8px 10px;border:1px solid var(--g200);border-radius:6px;font-family:monospace;font-size:11px}
+.mbox input:focus{outline:none;border-color:var(--li);box-shadow:0 0 0 2px rgba(10,102,194,.1)}
+.mbtns{display:flex;gap:6px;margin-top:12px;justify-content:flex-end}
+.mcancel{padding:7px 14px;border:1px solid var(--g200);border-radius:6px;background:#fff;font-family:inherit;font-size:12px;font-weight:500;cursor:pointer;color:var(--g600)}
+.msubmit{padding:7px 14px;border:none;border-radius:6px;background:var(--li);color:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer}
 
 @media(max-width:768px){
-  .nav{padding:0 12px}.nav-btn span{display:none}.main{padding:16px 12px 48px}
-  .profiles{grid-template-columns:1fr}.recs-grid{grid-template-columns:1fr 1fr}
-  .cal-hdr{flex-direction:column;align-items:flex-start}
-  .empty-btns{flex-direction:column;align-items:center}
+  .topbar{padding:0 12px}.topbar-r{gap:4px}.nbtn{padding:0 8px;font-size:11px;gap:4px}
+  .main{padding:16px 12px 60px}.hero h1{font-size:24px}.hero p{font-size:13px}
+  .profiles{grid-template-columns:1fr}.sgrid{grid-template-columns:1fr 1fr}
+  .chead{flex-direction:column;align-items:flex-start}.ccard{padding:16px}
 }
 </style>
 </head>
 <body>
 
-<nav class="nav">
-  <div class="nav-brand">
-    <div class="nav-logo"><svg viewBox="0 0 24 24" fill="white"><path d="M13 3v7h7l-9 11v-7H4l9-11z"/></svg></div>
-    <span class="nav-title">Best Time to Post</span>
-    <span class="nav-badge">BETA</span>
+<nav class="topbar">
+  <div class="topbar-l">
+    <div class="tlogo"><svg viewBox="0 0 24 24" fill="white"><path d="M13 3v7h7l-9 11v-7H4l9-11z"/></svg></div>
+    <span class="tbrand">Best Time to Post</span>
+    <span class="tbadge">BETA</span>
   </div>
-  <div class="nav-actions">
-    <button class="nav-btn meta" id="btn-meta" onclick="connectMeta()">
-      <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
-      <span>Connect Meta</span>
+  <div class="topbar-r">
+    <button class="nbtn meta" id="btn-meta" onclick="connectMeta()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>
+      Connect Meta
     </button>
-    <button class="nav-btn linkedin" id="btn-li" onclick="showLiModal()">
-      <svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-      <span>Connect LinkedIn</span>
+    <button class="nbtn linkedin" id="btn-li" onclick="showLiModal()">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
+      Connect LinkedIn
     </button>
   </div>
 </nav>
 
 <div class="main">
+  <div class="hero" id="hero">
+    <h1>Find Your Best Time to Post</h1>
+    <p>Connect your social accounts to get personalized posting times based on real audience data.</p>
+  </div>
 
-  <!-- Empty State -->
-  <div id="empty-state" class="empty">
-    <div class="empty-icon">&#128200;</div>
-    <h2>Find your best time to post</h2>
-    <p>Connect your social accounts and we'll analyze real audience data to build a personalized posting schedule.</p>
-    <div class="empty-btns">
-      <button class="big-btn meta" onclick="connectMeta()">
-        <svg viewBox="0 0 24 24" fill="white"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8z"/></svg>
-        Connect Instagram &amp; Facebook
-      </button>
-      <button class="big-btn linkedin" onclick="showLiModal()">
-        <svg viewBox="0 0 24 24" fill="white"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 01-2.063-2.065 2.064 2.064 0 112.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg>
-        Connect LinkedIn
-      </button>
+  <div class="feed-panel" id="feed-panel">
+    <div class="feed-head"><span>Collecting your data</span><span class="feed-status" id="feed-status"></span></div>
+    <div id="feed-list"></div>
+  </div>
+
+  <div class="profiles" id="profiles">
+    <div class="pcard" id="pc-ig">
+      <div class="pcard-top">
+        <div class="av ig" id="av-ig"><span>IG</span></div>
+        <div><div class="pname" id="ig-name">—</div><div class="phandle" id="ig-handle"></div><div class="pcat" id="ig-cat"></div></div>
+      </div>
+      <div class="pstats" id="ig-stats"></div>
+    </div>
+    <div class="pcard" id="pc-fb">
+      <div class="pcard-top">
+        <div class="av fb" id="av-fb"><span>FB</span></div>
+        <div><div class="pname" id="fb-name">—</div><div class="phandle" id="fb-handle"></div><div class="pcat fb" id="fb-cat"></div></div>
+      </div>
+      <div class="pstats" id="fb-stats"></div>
     </div>
   </div>
 
-  <!-- Dashboard (hidden until connected) -->
-  <div id="dashboard" style="display:none">
+  <div class="sigs" id="sigs">
+    <div class="stitle">Data Signals</div>
+    <div class="sgrid" id="sgrid"></div>
+  </div>
 
-    <!-- Pipeline Panel -->
-    <div class="pipeline" id="pipeline">
-      <div class="pipe-hdr">
-        <span class="pipe-title" id="pipe-title">Analyzing your accounts…</span>
-        <span class="pipe-status" id="pipe-status"></span>
-      </div>
-      <div id="pipe-steps"></div>
-      <div class="pipe-summary" id="pipe-summary"></div>
-    </div>
+  <div class="recs" id="recs">
+    <div class="stitle">Top Posting Times</div>
+    <div class="rdesc" id="rdesc"></div>
+    <div class="rgrid" id="rgrid"></div>
+  </div>
 
-    <!-- Profiles -->
-    <div class="profiles">
-      <div class="pcard" id="pcard-ig">
-        <div class="pcard-top">
-          <div class="pcard-av ig" id="av-ig">IG</div>
-          <div>
-            <div class="pcard-name" id="n-ig">—</div>
-            <div class="pcard-handle" id="h-ig"></div>
-            <div class="pcard-cat ig" id="c-ig"></div>
-          </div>
-        </div>
-        <div class="pcard-stats" id="s-ig"></div>
-        <span class="pcard-badge ig">Instagram Business</span>
-      </div>
-      <div class="pcard" id="pcard-fb">
-        <div class="pcard-top">
-          <div class="pcard-av fb" id="av-fb">FB</div>
-          <div>
-            <div class="pcard-name" id="n-fb">—</div>
-            <div class="pcard-handle" id="h-fb"></div>
-            <div class="pcard-cat fb" id="c-fb"></div>
-          </div>
-        </div>
-        <div class="pcard-stats" id="s-fb"></div>
-        <span class="pcard-badge fb">Facebook Page</span>
-      </div>
-    </div>
-
-    <!-- Data Signals -->
-    <div class="signals" id="signals"></div>
-
-    <!-- Calendar -->
-    <div class="cal">
-      <div class="cal-hdr">
-        <span class="cal-title">Your Posting Schedule</span>
-        <div class="tabs" id="cal-tabs">
-          <button class="tab active" data-p="all" onclick="switchTab(this)">Combined</button>
-          <button class="tab off" data-p="ig" id="tab-ig" onclick="switchTab(this)">Instagram</button>
-          <button class="tab off" data-p="fb" id="tab-fb" onclick="switchTab(this)">Facebook</button>
-          <button class="tab off" data-p="li" id="tab-li" onclick="switchTab(this)">LinkedIn</button>
+  <div class="sched" id="sched">
+    <div class="ccard">
+      <div class="chead">
+        <span class="ctitle">Weekly Schedule</span>
+        <div class="tabs">
+          <button class="tab on" data-p="all" onclick="swTab(this)">Combined</button>
+          <button class="tab off" data-p="ig" id="t-ig" onclick="swTab(this)">Instagram</button>
+          <button class="tab off" data-p="fb" id="t-fb" onclick="swTab(this)">Facebook</button>
+          <button class="tab off" data-p="li" id="t-li" onclick="swTab(this)">LinkedIn</button>
         </div>
       </div>
-      <div class="legend" id="legend"><div><div class="leg-bar combined"></div><div class="leg-lbl"><span>Low</span><span>High</span></div></div></div>
-      <div class="grid-wrap"><div class="grid" id="grid"></div></div>
-    </div>
-
-    <!-- Recommendations -->
-    <div class="recs" id="recs">
-      <div class="recs-title">Recommended posting times</div>
-      <div class="recs-desc" id="recs-desc"></div>
-      <div class="recs-grid" id="recs-grid"></div>
+      <div class="leg" id="leg"><div><div class="lbar combined"></div><div class="llbl"><span>Low</span><span>High</span></div></div></div>
+      <div class="gwrap"><div class="grid" id="grid"></div></div>
+      <div class="meth" id="meth">
+        <div class="mtitle">How we calculated this</div>
+        <div class="mcards" id="mcards"></div>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- LinkedIn Modal -->
-<div class="modal-bg" id="li-modal">
-  <div class="modal">
+<div class="modal" id="li-modal">
+  <div class="mbox">
     <h3>Connect LinkedIn</h3>
-    <p>LinkedIn requires server-side OAuth. Paste an access token from the <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank" style="color:var(--li)">Token Generator</a>.</p>
-    <input type="text" id="li-token" placeholder="Paste your LinkedIn access token">
-    <div class="modal-btns">
-      <button class="modal-cancel" onclick="closeLiModal()">Cancel</button>
-      <button class="modal-ok" onclick="connectLinkedIn()">Connect</button>
+    <p>LinkedIn requires server-side OAuth. Paste an access token from the <a href="https://www.linkedin.com/developers/tools/oauth/token-generator" target="_blank">OAuth Token Generator</a>.</p>
+    <input id="li-tok" placeholder="Paste your LinkedIn access token">
+    <div class="mbtns">
+      <button class="mcancel" onclick="closeLiModal()">Cancel</button>
+      <button class="msubmit" onclick="doLinkedIn()">Connect</button>
     </div>
   </div>
 </div>
 
-<!-- FB SDK -->
 <script>
 const META_APP_ID='1428744032258642';
 window.fbAsyncInit=function(){FB.init({appId:META_APP_ID,cookie:true,xfbml:false,version:'v21.0'})};
@@ -303,53 +282,49 @@ window.fbAsyncInit=function(){FB.init({appId:META_APP_ID,cookie:true,xfbml:false
 </script>
 
 <script>
-// ═══════ CONFIG ═══════
-const META_CONFIG_ID='1826888727999876';
 const DAYS=['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+const META_CONFIG_ID='1826888727999876';
 const state={ig:false,fb:false,li:false};
 const results={};
 const scoreCache={};
 const signalInfo={};
-let activeTab='all';
+let curTab='all';
 
-// ═══════ HELPERS ═══════
-function fh(h){return h===0?'12 AM':h<12?h+' AM':h===12?'12 PM':(h-12)+' PM'}
-function fn(n){return n==null?'—':Number(n).toLocaleString()}
+// ── Helpers ──
+function fmt(n){return n!=null?Number(n).toLocaleString():'—'}
+function fmtH(h){if(h===0)return'12 AM';if(h<12)return h+' AM';if(h===12)return'12 PM';return(h-12)+' PM'}
+function $(id){return document.getElementById(id)}
 
-async function gql(path,token){
-  const sep=path.includes('?')?'&':'?';
-  try{
-    const r=await fetch('https://graph.facebook.com/v21.0/'+path+sep+'access_token='+token);
-    return await r.json();
-  }catch(e){console.error('API:',path,e);return{error:{message:e.message}}}
+function setAvatar(elId,url){
+  if(!url)return;
+  const el=$(elId);
+  const img=new Image();
+  img.onload=()=>{el.innerHTML='';el.appendChild(img)};
+  img.onerror=()=>{};
+  img.src=url;
 }
 
-// ═══════ PIPELINE ═══════
-function showDash(){
-  document.getElementById('empty-state').style.display='none';
-  document.getElementById('dashboard').style.display='block';
-  document.getElementById('pipeline').classList.add('show');
+// ── Feed ──
+function feedStart(id,label){
+  $('feed-panel').classList.add('show');
+  const item=document.createElement('div');
+  item.id='f-'+id;item.className='fi active';
+  item.innerHTML=`<div class="fi-dot"></div><span class="fi-label">${label}</span><span class="fi-val" id="fv-${id}"></span>`;
+  $('feed-list').appendChild(item);
+}
+function feedEnd(id,val,status){
+  const item=$('f-'+id);
+  if(!item)return;
+  item.className='fi '+status;
+  const v=$('fv-'+id);
+  if(v)v.textContent=val||'';
 }
 
-function addStep(id,label){
-  const el=document.createElement('div');
-  el.className='stp';el.id='s-'+id;
-  el.innerHTML='<div class="stp-i"></div><div class="stp-lbl">'+label+'</div><div class="stp-dtl" id="d-'+id+'"></div>';
-  document.getElementById('pipe-steps').appendChild(el);
-}
-
-function setStep(id,status,detail){
-  const el=document.getElementById('s-'+id);
-  if(!el)return;
-  el.className='stp '+status;
-  if(detail){const d=document.getElementById('d-'+id);if(d)d.textContent=detail}
-}
-
-// ═══════ META CONNECTION ═══════
+// ── Meta Connect ──
 function connectMeta(){
-  if(!window.FB){alert('Facebook SDK not loaded. Please refresh.');return}
-  const btn=document.getElementById('btn-meta');
-  btn.innerHTML='<div class="spin"></div><span>Connecting…</span>';
+  if(!window.FB){alert('Facebook SDK not loaded.');return}
+  const btn=$('btn-meta');
+  btn.textContent='Connecting...';btn.style.pointerEvents='none';
   FB.getLoginStatus(function(s){
     if(s.status==='connected'){
       FB.api('/me/permissions','DELETE',function(){FB.logout(function(){doMetaLogin()})});
@@ -361,264 +336,207 @@ function doMetaLogin(){
   const opts=META_CONFIG_ID
     ?{config_id:META_CONFIG_ID,response_type:'token',override_default_response_type:true}
     :{scope:'pages_show_list,business_management',auth_type:'rerequest'};
-  FB.login(function(res){
-    if(res.authResponse){
+  FB.login(function(r){
+    if(r.authResponse){
       state.ig=true;state.fb=true;
-      setMetaBtn(true);
-      document.getElementById('tab-ig').classList.remove('off');
-      document.getElementById('tab-fb').classList.remove('off');
-      showDash();
-      fetchMetaData(res.authResponse.accessToken);
-    }else{setMetaBtn(false)}
+      $('hero').classList.add('gone');
+      $('t-ig').classList.replace('off','on');
+      $('t-fb').classList.replace('off','on');
+      feedStart('connect','Connected to Meta');
+      feedEnd('connect','Authenticated','done');
+      fetchMetaData(r.authResponse.accessToken);
+    }else{
+      const btn=$('btn-meta');
+      btn.textContent='Connect Meta';btn.style.pointerEvents='';
+    }
   },opts);
 }
 
-function setMetaBtn(connected){
-  const btn=document.getElementById('btn-meta');
-  if(connected){
-    btn.className='nav-btn meta connected';
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><span>Meta Connected</span>';
-    btn.onclick=resetMeta;
-  }else{
-    btn.className='nav-btn meta';
-    btn.innerHTML='<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z"/></svg><span>Connect Meta</span>';
-    btn.onclick=connectMeta;
-  }
+function setMetaBtnDone(){
+  const btn=$('btn-meta');
+  btn.className='nbtn done';
+  btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> Meta Connected';
+  btn.onclick=null;
 }
 
-function resetMeta(){
-  if(!confirm('Disconnect Meta accounts?'))return;
-  if(window.FB){FB.getLoginStatus(function(s){
-    if(s.status==='connected'){FB.api('/me/permissions','DELETE',function(){FB.logout(function(){location.reload()})})}
-    else{location.reload()}
-  })}else{location.reload()}
+async function gql(path,token){
+  const sep=path.includes('?')?'&':'?';
+  const r=await fetch(`https://graph.facebook.com/v21.0/${path}${sep}access_token=${token}`);
+  return r.json();
 }
 
-// ═══════ FETCH ALL DATA ═══════
+// ── Main Fetch Flow ──
 async function fetchMetaData(token){
   const R={};
+  try{
+    // 1. Pages
+    feedStart('pages','Finding your Facebook Pages');
+    const pages=await gql('me/accounts?fields=id,name,access_token,instagram_business_account,category,fan_count,about,picture',token);
+    const p=pages.data||[];
+    const page=p[0];
+    if(!page){feedEnd('pages','No pages found — check permissions','fail');return}
+    feedEnd('pages',page.name+(page.category?' · '+page.category:''),'done');
+    const pt=page.access_token;
 
-  // 1. Connect
-  addStep('conn','Connecting to Meta');
-  setStep('conn','ok','Authenticated');
+    // Show FB card
+    showFBCard(page);
 
-  // 2. Pages
-  addStep('pages','Finding your pages');
-  setStep('pages','on');
-  const pages=await gql('me/accounts?fields=id,name,access_token,instagram_business_account,category,fan_count,about,picture.type(large)',token);
-  const plist=pages.data||[];
-  const page=plist[0];
-  if(!page){setStep('pages','er','No pages found');document.getElementById('pipe-title').textContent='No pages found';return}
-  setStep('pages','ok',page.name+(page.category?' · '+page.category:''));
-  R.page=page;
-  const pt=page.access_token;
+    // 2. IG Profile
+    const igAcc=page.instagram_business_account;
+    if(igAcc){
+      const igId=igAcc.id;
+      feedStart('ig-prof','Fetching Instagram profile');
+      const prof=await gql(`${igId}?fields=id,username,name,followers_count,follows_count,media_count,biography,profile_picture_url`,token);
+      R.ig_profile={status:'ok',data:prof};
+      feedEnd('ig-prof',`@${prof.username||'?'} · ${fmt(prof.followers_count)} followers`,'done');
+      showIGCard(prof,page.category);
 
-  // Show FB card immediately
-  showFB(page);
+      // 3. IG Posts
+      feedStart('ig-posts','Analyzing Instagram posts');
+      const media=await gql(`${igId}/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100`,token);
+      const md=media.data||[];
+      R._igPosts=md;
+      R.ig_post_history={status:md.length>0?'ok':'warn',count:md.length};
+      feedEnd('ig-posts',md.length+' posts analyzed',md.length>0?'done':'warn');
+      // Update IG card post count
+      updateIGPosts(prof.media_count,md.length);
 
-  // 3. FB posts
-  addStep('fb-posts','Fetching Facebook posts');
-  setStep('fb-posts','on');
-  const fbFeed=await gql(page.id+'/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100',pt);
-  const fbPosts=fbFeed.data||[];
-  R.fb_posts=fbPosts;
-  setStep('fb-posts',fbPosts.length>0?'ok':'er',fbPosts.length+' posts');
+      // 4. IG Online Followers (KEY metric)
+      feedStart('ig-online','Reading online followers data');
+      const ol=await gql(`${igId}/insights?metric=online_followers&period=lifetime`,token);
+      const olData=ol.data?.[0]?.values?.[0]?.value;
+      R.ig_online_followers={status:olData?'ok':'warn',data:olData};
+      if(olData){
+        const peak=Object.entries(olData).sort((a,b)=>b[1]-a[1])[0];
+        feedEnd('ig-online',`Peak: ${fmt(peak[1])} at ${fmtH(+peak[0])}`,'done');
+      }else{
+        feedEnd('ig-online',ol.error?.message||'Not available','warn');
+      }
 
-  // Update FB card with post count
-  addFBPostCount(fbPosts.length);
+      // 5. IG Post Insights (sample)
+      feedStart('ig-ins','Checking post-level insights');
+      let igInsOk=false;
+      for(const m of md.slice(0,3)){
+        try{const ins=await gql(`${m.id}/insights?metric=reach,total_interactions,saved`,token);if(ins.data?.length){igInsOk=true;break}}catch(e){}
+      }
+      R.ig_post_metrics={status:igInsOk?'ok':'warn'};
+      feedEnd('ig-ins',igInsOk?'Reach, interactions, saves':'Not available',igInsOk?'done':'warn');
 
-  // Build FB engagement map
-  if(fbPosts.length>0){
-    const em={};
-    for(const p of fbPosts){
-      const dt=new Date(p.created_time);
-      const k=dt.getUTCDay()+'-'+dt.getUTCHours();
-      const eng=(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0);
-      if(!em[k])em[k]={t:0,c:0};em[k].t+=eng;em[k].c++;
-    }
-    const avg={};for(const[k,v]of Object.entries(em))avg[k]=Math.round(v.t/v.c*100)/100;
-    R.fb_eng_map=avg;
-  }
-
-  // 4. IG
-  const igAcc=page.instagram_business_account;
-  if(igAcc){
-    const igId=igAcc.id;
-
-    // Profile
-    addStep('ig-prof','Loading Instagram profile');
-    setStep('ig-prof','on');
-    const prof=await gql(igId+'?fields=id,username,name,followers_count,follows_count,media_count,biography,profile_picture_url',token);
-    R.ig_profile=prof;
-    if(prof&&!prof.error){
-      setStep('ig-prof','ok','@'+(prof.username||'?')+' · '+fn(prof.followers_count)+' followers');
-      showIG(prof,page.category);
-    }else{setStep('ig-prof','er',prof?.error?.message||'Failed')}
-
-    // Posts
-    addStep('ig-posts','Fetching Instagram posts');
-    setStep('ig-posts','on');
-    const media=await gql(igId+'/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100',token);
-    const igPosts=media.data||[];
-    R.ig_posts=igPosts;
-    setStep('ig-posts',igPosts.length>0?'ok':'er',igPosts.length+' posts');
-
-    // Post insights (sample check)
-    let igInsOk=false;
-    for(const m of igPosts.slice(0,3)){
-      try{const ins=await gql(m.id+'/insights?metric=reach,total_interactions,saved',token);if(ins.data?.length){igInsOk=true;break}}catch{}
-    }
-    R.ig_insights=igInsOk;
-
-    // Online followers (KEY)
-    addStep('ig-fol','Reading follower activity');
-    setStep('ig-fol','on');
-    const ol=await gql(igId+'/insights?metric=online_followers&period=lifetime',token);
-    const olData=ol.data?.[0]?.values?.[0]?.value;
-    R.ig_online=olData;
-    if(olData){
-      const peak=Object.entries(olData).sort((a,b)=>b[1]-a[1])[0];
-      setStep('ig-fol','ok','Peak: '+fn(peak[1])+' at '+fh(parseInt(peak[0])));
+      // 6. IG Demographics
+      feedStart('ig-demo','Fetching audience demographics');
+      try{
+        const dc=await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=city`,token);
+        const da=await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age`,token);
+        const dg=await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=gender`,token);
+        const dco=await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=country`,token);
+        const all=[...(dc.data||[]),...(da.data||[]),...(dg.data||[]),...(dco.data||[])];
+        R.ig_demographics={status:all.length>0?'ok':'warn',data:all};
+        feedEnd('ig-demo',all.length>0?'City, age, gender, country':'Not available',all.length>0?'done':'warn');
+      }catch(e){feedEnd('ig-demo','Error','fail')}
     }else{
-      setStep('ig-fol','er',ol.error?.message||'No hourly data');
+      feedStart('ig-prof','Instagram Business account');
+      feedEnd('ig-prof','Not linked to this page','warn');
+      state.ig=false;
+      $('t-ig').classList.replace('on','off');
     }
 
-    // Demographics (parallel)
-    addStep('ig-demo','Audience demographics');
-    setStep('ig-demo','on');
+    // 7. FB Posts
+    feedStart('fb-posts','Analyzing Facebook posts');
+    const posts=await gql(`${page.id}/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100`,pt);
+    const pd=posts.data||[];
+    R.fb_post_history={status:pd.length>0?'ok':'warn',count:pd.length};
+    feedEnd('fb-posts',pd.length+' posts with engagement',pd.length>0?'done':'warn');
+    updateFBPosts(pd.length);
+
+    // Compute FB engagement by (day,hour)
+    if(pd.length>0){
+      const he={};
+      for(const post of pd){
+        const dt=new Date(post.created_time);
+        const h=dt.getUTCHours(),d=dt.getUTCDay();
+        const k=d+'-'+h;
+        const eng=(post.reactions?.summary?.total_count||0)+(post.comments?.summary?.total_count||0)+(post.shares?.count||0);
+        if(!he[k])he[k]={t:0,c:0};
+        he[k].t+=eng;he[k].c++;
+      }
+      const avg={};
+      for(const[k,v]of Object.entries(he))avg[k]=Math.round(v.t/v.c*100)/100;
+      R.fb_inferred_times={status:'ok',data:avg};
+    }
+
+    // 8. FB Page Insights
+    feedStart('fb-ins','Checking Facebook page insights');
     try{
-      const[dC,dA,dG,dCo]=await Promise.all([
-        gql(igId+'/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=city',token),
-        gql(igId+'/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age',token),
-        gql(igId+'/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=gender',token),
-        gql(igId+'/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=country',token)
-      ]);
-      R.ig_demo=[...(dC.data||[]),...(dA.data||[]),...(dG.data||[]),...(dCo.data||[])];
-      if(R.ig_demo.length>0){
-        const cities=dC.data?.[0]?.total_value?.breakdowns?.[0]?.results||[];
-        const top=cities.sort((a,b)=>b.value-a.value)[0];
-        setStep('ig-demo','ok',top?'Top city: '+top.dimension_values[0]:'Data received');
-      }else{setStep('ig-demo','er',dC.error?.message||'Not available')}
-    }catch(e){setStep('ig-demo','er','Error');R.ig_demo=[]}
-  }else{
-    addStep('ig-na','Instagram Business account');
-    setStep('ig-na','er','No IG Business account linked to this page');
-  }
+      const pi=await gql(`${page.id}/insights?metric=page_post_engagements,page_views_total&period=day`,pt);
+      R.fb_page_insights={status:pi.data?.length>0?'ok':'warn'};
+      feedEnd('fb-ins',pi.data?.length>0?'Engagements, views':'Limited data',pi.data?.length>0?'done':'warn');
+    }catch(e){feedEnd('fb-ins','Not available','warn')}
 
-  // 5. FB page insights
-  addStep('fb-ins','Facebook page insights');
-  setStep('fb-ins','on');
-  const pi=await gql(page.id+'/insights?metric=page_post_engagements,page_views_total&period=day',pt);
-  R.fb_page_insights=pi.data?.length>0;
-  setStep('fb-ins',pi.data?.length>0?'ok':'er',pi.data?.length>0?'Engagement & views':(pi.error?.message||'Not available'));
+    // 9. FB Fans Online (deprecated check)
+    feedStart('fb-fans','Facebook audience online data');
+    const fo=await gql(`${page.id}/insights?metric=page_fans_online&period=day`,pt);
+    R.fb_fans_online={status:fo.error?'fail':'ok'};
+    feedEnd('fb-fans',fo.error?'Deprecated by Meta (Sep 2024)':'Available',fo.error?'fail':'done');
 
-  // 6. Build schedule
-  addStep('build','Building your posting schedule');
-  setStep('build','on');
+    // BUILD
+    feedStart('build','Building your posting schedule');
+    results.meta=R;
+    buildDashboard();
+    feedEnd('build','Schedule ready!','done');
+    $('feed-status').textContent='✓ Complete';
+    setMetaBtnDone();
 
-  results.meta=R;
-  computeAllScores();
-  buildSignals();
-  buildRecs();
-  renderCal(activeTab);
-
-  setStep('build','ok','Done');
-  document.getElementById('pipe-title').textContent='Analysis complete';
-
-  // Show weight summary
-  const w=signalInfo.combined?.weights||{};
-  const parts=[];
-  if(w.ig)parts.push('Instagram '+Math.round(w.ig*100)+'%');
-  if(w.fb)parts.push('Facebook '+Math.round(w.fb*100)+'%');
-  if(w.li)parts.push('LinkedIn '+Math.round(w.li*100)+'%');
-  if(parts.length>0){
-    const sm=document.getElementById('pipe-summary');
-    sm.innerHTML='Schedule weights: <strong>'+parts.join(' · ')+'</strong>';
-    sm.classList.add('show');
+  }catch(e){
+    console.error('fetchMetaData error:',e);
+    feedStart('error','Error occurred');
+    feedEnd('error',e.message,'fail');
   }
 }
 
-// ═══════ PROFILE CARDS ═══════
-function showIG(prof,pageCat){
-  const card=document.getElementById('pcard-ig');card.classList.add('show');
-  document.getElementById('n-ig').textContent=prof.name||prof.username||'—';
-  document.getElementById('h-ig').textContent=prof.username?'@'+prof.username:'';
-  document.getElementById('c-ig').textContent=pageCat||'';
-  if(prof.profile_picture_url){
-    document.getElementById('av-ig').innerHTML='<img src="'+prof.profile_picture_url+'" onerror="this.remove();this.parentNode.textContent=\'IG\'">';
-  }
-  const st=document.getElementById('s-ig');st.innerHTML='';
-  if(prof.followers_count!=null)st.innerHTML+='<div class="ps-item"><div class="ps-val">'+fn(prof.followers_count)+'</div><div class="ps-lbl">Followers</div></div>';
-  if(prof.follows_count!=null)st.innerHTML+='<div class="ps-item"><div class="ps-val">'+fn(prof.follows_count)+'</div><div class="ps-lbl">Following</div></div>';
-  if(prof.media_count!=null)st.innerHTML+='<div class="ps-item"><div class="ps-val">'+fn(prof.media_count)+'</div><div class="ps-lbl">Posts</div></div>';
+// ── Profile Cards ──
+function showIGCard(prof,category){
+  const c=$('pc-ig');c.classList.add('show');
+  $('ig-name').textContent=prof.name||prof.username||'—';
+  $('ig-handle').textContent=prof.username?'@'+prof.username:'';
+  $('ig-cat').textContent=category||'';
+  setAvatar('av-ig',prof.profile_picture_url);
+  const s=$('ig-stats');s.innerHTML='';
+  if(prof.followers_count!=null)s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(prof.followers_count)}</span><span class="ps-l">Followers</span></div>`;
+  if(prof.follows_count!=null)s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(prof.follows_count)}</span><span class="ps-l">Following</span></div>`;
+  if(prof.media_count!=null)s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(prof.media_count)}</span><span class="ps-l">Posts</span></div>`;
 }
 
-function showFB(page){
-  const card=document.getElementById('pcard-fb');card.classList.add('show');
-  document.getElementById('n-fb').textContent=page.name||'—';
-  document.getElementById('c-fb').textContent=page.category||'';
-  const picUrl=page.picture?.data?.url;
-  if(picUrl){
-    document.getElementById('av-fb').innerHTML='<img src="'+picUrl+'" onerror="this.remove();this.parentNode.textContent=\'FB\'">';
-  }
-  const st=document.getElementById('s-fb');st.innerHTML='';
-  if(page.fan_count!=null)st.innerHTML+='<div class="ps-item"><div class="ps-val">'+fn(page.fan_count)+'</div><div class="ps-lbl">Page Fans</div></div>';
-  if(page.about)document.getElementById('h-fb').textContent=page.about.slice(0,80)+(page.about.length>80?'…':'');
-}
-
-function addFBPostCount(count){
-  const st=document.getElementById('s-fb');
-  st.innerHTML+='<div class="ps-item"><div class="ps-val">'+fn(count)+'</div><div class="ps-lbl">Posts</div></div>';
-}
-
-// ═══════ DATA SIGNALS ═══════
-function buildSignals(){
-  const el=document.getElementById('signals');
-  const w=signalInfo.combined?.weights||{};
-  let h='<div class="sig-title">How your schedule was built</div>';
-
-  if(state.ig&&signalInfo.ig){
-    const si=signalInfo.ig;
-    h+='<div class="sig-platform"><div class="sig-phdr"><div class="sig-dot ig"></div><span class="sig-pname">Instagram</span><span class="sig-weight">'+(w.ig?Math.round(w.ig*100)+'% weight':'')+'</span><span class="sig-badge '+(si.type==='real'?'real':'inferred')+'">'+(si.type==='real'?'Real data':'Estimated')+'</span></div>';
-    const ol=results.meta?.ig_online;
-    if(ol){
-      const pk=Object.entries(ol).sort((a,b)=>b[1]-a[1])[0];
-      h+='<div class="sig-row"><span class="ck">✓</span>Online followers: peak <strong>'+fn(pk[1])+'</strong> at '+fh(parseInt(pk[0]))+'</div>';
-    }else{
-      h+='<div class="sig-row"><span class="xk">✗</span>Online followers not available — using general patterns</div>';
+function updateIGPosts(totalPosts,analyzedCount){
+  // If media_count was 0/null but we got posts, fix it
+  const s=$('ig-stats');
+  if(s&&analyzedCount>0){
+    const existing=s.querySelectorAll('.ps');
+    let hasPostsStat=false;
+    existing.forEach(el=>{if(el.querySelector('.ps-l')?.textContent==='Posts')hasPostsStat=true});
+    if(!hasPostsStat){
+      s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(analyzedCount)}</span><span class="ps-l">Posts</span></div>`;
     }
-    const igP=results.meta?.ig_posts||[];
-    h+='<div class="sig-row"><span class="'+(igP.length>0?'ck':'xk')+'">'+(igP.length>0?'✓':'✗')+'</span>Post history: '+igP.length+' posts'+(igP.length>0?' (engagement by day/hour)':'')+'</div>';
-    if((results.meta?.ig_demo||[]).length>0)h+='<div class="sig-row"><span class="ck">✓</span>Audience demographics: city, age, gender, country</div>';
-    if(results.meta?.ig_insights)h+='<div class="sig-row"><span class="ck">✓</span>Post insights: reach, interactions, saves</div>';
-    h+='</div>';
   }
-
-  if(state.fb&&signalInfo.fb){
-    const sf=signalInfo.fb;
-    h+='<div class="sig-platform"><div class="sig-phdr"><div class="sig-dot fb"></div><span class="sig-pname">Facebook</span><span class="sig-weight">'+(w.fb?Math.round(w.fb*100)+'% weight':'')+'</span><span class="sig-badge inferred">Inferred from posts</span></div>';
-    const fbP=results.meta?.fb_posts||[];
-    if(fbP.length>0&&sf.type==='real'){
-      h+='<div class="sig-row"><span class="ck">✓</span>Post engagement: '+fbP.length+' posts, best <strong>'+DAYS[sf.bestDay]+'s at '+fh(sf.bestHour)+'</strong></div>';
-    }else{
-      h+='<div class="sig-row"><span class="xk">✗</span>No post engagement data — using general patterns</div>';
-    }
-    h+='<div class="sig-row"><span class="'+(results.meta?.fb_page_insights?'ck':'xk')+'">'+(results.meta?.fb_page_insights?'✓':'✗')+'</span>Page insights: '+(results.meta?.fb_page_insights?'daily engagement & views':'not available')+'</div>';
-    h+='<div class="sig-row"><span class="xk">✗</span>Fans online: deprecated by Meta (Sep 2024)</div>';
-    h+='</div>';
-  }
-
-  if(state.li&&signalInfo.li){
-    h+='<div class="sig-platform"><div class="sig-phdr"><div class="sig-dot li"></div><span class="sig-pname">LinkedIn</span><span class="sig-weight">'+(w.li?Math.round(w.li*100)+'% weight':'')+'</span><span class="sig-badge industry">Industry benchmarks</span></div>';
-    h+='<div class="sig-row"><span class="ck">✓</span>B2B timing: Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</div>';
-    h+='</div>';
-  }
-
-  el.innerHTML=h;
-  el.classList.add('show');
 }
 
-// ═══════ SCORING ENGINE ═══════
+function showFBCard(page){
+  const c=$('pc-fb');c.classList.add('show');
+  $('fb-name').textContent=page.name||'—';
+  $('fb-cat').textContent=page.category||'';
+  if(page.about)$('fb-handle').textContent=page.about.length>60?page.about.slice(0,60)+'…':page.about;
+  setAvatar('av-fb',page.picture?.data?.url);
+  const s=$('fb-stats');s.innerHTML='';
+  if(page.fan_count!=null)s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(page.fan_count)}</span><span class="ps-l">Fans</span></div>`;
+}
+
+function updateFBPosts(count){
+  const s=$('fb-stats');
+  if(s&&count>0)s.innerHTML+=`<div class="ps"><span class="ps-n">${fmt(count)}</span><span class="ps-l">Posts analyzed</span></div>`;
+}
+
+// ═══════════════════════════════════
+// SCORING ENGINE
+// ═══════════════════════════════════
 function computeAllScores(){
   if(state.ig)scoreCache.ig=computeIG();
   if(state.fb)scoreCache.fb=computeFB();
@@ -627,237 +545,283 @@ function computeAllScores(){
 }
 
 function computeIG(){
-  const g=Array.from({length:7},()=>new Float64Array(24));
-  const ol=results.meta?.ig_online;
-  if(ol&&typeof ol==='object'&&Object.keys(ol).length>0){
+  const grid=Array.from({length:7},()=>new Float64Array(24));
+  const ol=results.meta?.ig_online_followers?.data;
+  if(ol&&typeof ol==='object'){
     const vals=Object.values(ol).map(Number);
-    const mx=Math.max(...vals),mn=Math.min(...vals),rng=mx-mn||1;
-    const hr={};for(let h=0;h<24;h++)hr[h]=((Number(ol[String(h)])||0)-mn)/rng;
-    const df=igDayFactor();
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++)g[d][h]=hr[h]*0.8+df[d]*0.2;
-    const pk=Object.entries(ol).sort((a,b)=>Number(b[1])-Number(a[1]))[0];
-    signalInfo.ig={type:'real',peak:pk?Number(pk[1]):0,peakHour:pk?parseInt(pk[0]):0,weight:0.60};
+    const mx=Math.max(...vals),mn=Math.min(...vals),range=mx-mn||1;
+    const hourly={};
+    for(let h=0;h<24;h++)hourly[h]=((Number(ol[String(h)])||0)-mn)/range;
+    const dayF=computeIGDayFactor();
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++)grid[d][h]=hourly[h]*0.8+dayF[d]*0.2;
+    const peakH=Object.entries(ol).sort((a,b)=>b[1]-a[1])[0];
+    signalInfo.ig={type:'real',peak:peakH?Number(peakH[1]):0,peakHour:peakH?parseInt(peakH[0]):0,weight:0.60};
   }else{
     for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-      let s=0.3;
-      if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;
-      if(d>=5)s*=0.85;g[d][h]=s;
+      let s=0.3;if((h>=7&&h<=9)||(h>=12&&h<=13)||(h>=19&&h<=21))s=1;else if(h>=10&&h<=18)s=0.6;if(d>=5)s*=0.85;grid[d][h]=s;
     }
     signalInfo.ig={type:'fallback',weight:0.30};
   }
-  return g;
+  return grid;
 }
 
-function igDayFactor(){
-  const de=Array(7).fill(0),dc=Array(7).fill(0);
-  for(const p of(results.meta?.ig_posts||[])){
-    const dt=new Date(p.timestamp),d=(dt.getUTCDay()+6)%7;
-    de[d]+=(p.like_count||0)+(p.comments_count||0);dc[d]++;
-  }
-  const da=de.map((t,i)=>dc[i]>0?t/dc[i]:0),mx=Math.max(...da)||1;
-  return da.map(v=>v/mx);
+function computeIGDayFactor(){
+  const dayEng=Array(7).fill(0),dayCnt=Array(7).fill(0);
+  const posts=results.meta?._igPosts||[];
+  for(const p of posts){const dt=new Date(p.timestamp);const d=(dt.getUTCDay()+6)%7;dayEng[d]+=(p.like_count||0)+(p.comments_count||0);dayCnt[d]++}
+  const dayAvg=dayEng.map((t,i)=>dayCnt[i]>0?t/dayCnt[i]:0);
+  const maxA=Math.max(...dayAvg)||1;
+  return maxA===0?Array(7).fill(0.5):dayAvg.map(v=>v/maxA);
 }
 
 function computeFB(){
-  const g=Array.from({length:7},()=>new Float64Array(24));
-  const eng=results.meta?.fb_eng_map;
-  if(eng&&Object.keys(eng).length>0){
-    const vals=Object.values(eng),mx=Math.max(...vals),mn=Math.min(...vals),rng=mx-mn||1;
+  const grid=Array.from({length:7},()=>new Float64Array(24));
+  const inf=results.meta?.fb_inferred_times?.data;
+  if(inf&&Object.keys(inf).length>0){
+    const vals=Object.values(inf);const mx=Math.max(...vals),mn=Math.min(...vals),range=mx-mn||1;
     const filled=new Set();
-    for(const[k,v]of Object.entries(eng)){
-      const[ds,hs]=k.split('-').map(Number);
-      const d=(ds+6)%7;g[d][hs]=(v-mn)/rng;filled.add(d+'-'+hs);
-    }
-    const ig=scoreCache.ig;
+    for(const[k,v]of Object.entries(inf)){const[ds,hs]=k.split('-').map(Number);const d=(ds+6)%7;grid[d][hs]=(v-mn)/range;filled.add(d+'-'+hs)}
+    const igG=scoreCache.ig;
     for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(!filled.has(d+'-'+h)){
-      const nb=[];
-      if(filled.has(d+'-'+(h-1)))nb.push(g[d][h-1]);
-      if(filled.has(d+'-'+(h+1)))nb.push(g[d][h+1]);
-      const a=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0.3;
-      g[d][h]=ig?ig[d][h]*0.4+a*0.6:a;
+      const nb=[];if(filled.has(d+'-'+(h-1)))nb.push(grid[d][h-1]);if(filled.has(d+'-'+(h+1)))nb.push(grid[d][h+1]);
+      const nbA=nb.length>0?nb.reduce((a,b)=>a+b,0)/nb.length:0.3;
+      grid[d][h]=igG?igG[d][h]*0.4+nbA*0.6:nbA;
     }
-    const fp=results.meta?.fb_posts||[];let bD=0,bH=0,bV=0;
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(g[d][h]>bV){bV=g[d][h];bD=d;bH=h}
-    signalInfo.fb={type:'real',postCount:fp.length,bestDay:bD,bestHour:bH,weight:0.35};
+    const pc=results.meta?.fb_post_history?.count||0;
+    let bD=0,bH=0,bV=0;for(let d=0;d<7;d++)for(let h=0;h<24;h++)if(grid[d][h]>bV){bV=grid[d][h];bD=d;bH=h}
+    signalInfo.fb={type:'real',postCount:pc,bestDay:bD,bestHour:bH,weight:0.35};
   }else{
-    for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-      let s=0.3;if((h>=9&&h<=11)||(h>=13&&h<=15))s=1;else if(h>=7&&h<=19)s=0.6;
-      if(d>=5)s*=0.8;g[d][h]=s;
-    }
+    for(let d=0;d<7;d++)for(let h=0;h<24;h++){let s=0.3;if((h>=9&&h<=11)||(h>=13&&h<=15))s=1;else if(h>=7&&h<=19)s=0.6;if(d>=5)s*=0.8;grid[d][h]=s}
     signalInfo.fb={type:'fallback',weight:0.15};
   }
-  return g;
+  return grid;
 }
 
 function computeLI(){
-  const g=Array.from({length:7},()=>new Float64Array(24));
+  const grid=Array.from({length:7},()=>new Float64Array(24));
   for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-    if(d>=5){g[d][h]=0.15;continue}
-    if((h>=7&&h<=8)||h===12||(h>=17&&h<=18))g[d][h]=1;
-    else if(h>=9&&h<=16)g[d][h]=0.65;
-    else g[d][h]=0.2;
-    if(d>=1&&d<=3)g[d][h]*=1;else g[d][h]*=0.85;
+    if(d>=5){grid[d][h]=0.15;continue}
+    if((h>=7&&h<=8)||h===12||(h>=17&&h<=18))grid[d][h]=1;else if(h>=9&&h<=16)grid[d][h]=0.65;else grid[d][h]=0.2;
+    if(d>=1&&d<=3)grid[d][h]*=1;else grid[d][h]*=0.85;
   }
   signalInfo.li={type:'industry',weight:0.10};
-  return g;
+  return grid;
 }
 
 function computeCombined(){
-  const g=Array.from({length:7},()=>new Float64Array(24));
-  const wt={};let tw=0;
-  if(state.ig&&scoreCache.ig){wt.ig=signalInfo.ig?.weight||0.3;tw+=wt.ig}
-  if(state.fb&&scoreCache.fb){wt.fb=signalInfo.fb?.weight||0.15;tw+=wt.fb}
-  if(state.li&&scoreCache.li){wt.li=signalInfo.li?.weight||0.10;tw+=wt.li}
-  if(tw===0)return g;
-  for(const k of Object.keys(wt))wt[k]/=tw;
+  const grid=Array.from({length:7},()=>new Float64Array(24));
+  const w={};let tot=0;
+  if(state.ig&&scoreCache.ig){w.ig=signalInfo.ig?.weight||0.3;tot+=w.ig}
+  if(state.fb&&scoreCache.fb){w.fb=signalInfo.fb?.weight||0.15;tot+=w.fb}
+  if(state.li&&scoreCache.li){w.li=signalInfo.li?.weight||0.10;tot+=w.li}
+  if(tot===0)return grid;
+  for(const k of Object.keys(w))w[k]/=tot;
   for(let d=0;d<7;d++)for(let h=0;h<24;h++){
-    let v=0;
-    if(wt.ig)v+=scoreCache.ig[d][h]*wt.ig;
-    if(wt.fb)v+=scoreCache.fb[d][h]*wt.fb;
-    if(wt.li)v+=scoreCache.li[d][h]*wt.li;
-    g[d][h]=v;
+    let v=0;if(w.ig)v+=scoreCache.ig[d][h]*w.ig;if(w.fb)v+=scoreCache.fb[d][h]*w.fb;if(w.li)v+=scoreCache.li[d][h]*w.li;grid[d][h]=v;
   }
-  signalInfo.combined={weights:wt};
-  return g;
+  signalInfo.combined={weights:w};
+  return grid;
 }
 
-// ═══════ HEATMAP ═══════
-function lerp(c1,c2,t){return'rgb('+Math.round(c1[0]+(c2[0]-c1[0])*t)+','+Math.round(c1[1]+(c2[1]-c1[1])*t)+','+Math.round(c1[2]+(c2[2]-c1[2])*t)+')'}
-
-function hc(val,pal){
-  const P={
-    combined:[[240,253,244],[134,239,172],[34,197,94],[21,128,61]],
-    ig:[[253,242,248],[249,168,212],[236,72,153],[190,24,93]],
-    fb:[[239,246,255],[147,197,253],[59,130,246],[30,64,175]],
-    li:[[240,249,255],[125,211,252],[14,165,233],[3,105,161]]
-  };
-  const p=P[pal]||P.combined;
-  const t=Math.max(0,Math.min(1,val));
-  const seg=t*(p.length-1),i=Math.floor(seg),f=seg-i;
-  if(i>=p.length-1)return'rgb('+p[p.length-1].join(',')+')';
-  return lerp(p[i],p[i+1],f);
+// ── Heatmap Colors ──
+function lerpC(c1,c2,t){return[Math.round(c1[0]+(c2[0]-c1[0])*t),Math.round(c1[1]+(c2[1]-c1[1])*t),Math.round(c1[2]+(c2[2]-c1[2])*t)]}
+function heatColor(val,pal){
+  const palettes={combined:[[240,253,244],[134,239,172],[34,197,94],[21,128,61]],ig:[[252,228,236],[244,143,177],[233,30,99],[173,20,87]],fb:[[227,242,253],[100,181,246],[24,119,242],[13,71,161]],li:[[225,240,250],[100,181,246],[10,102,194],[0,61,130]]};
+  const p=palettes[pal]||palettes.combined;const t=Math.max(0,Math.min(1,val));
+  const seg=t*(p.length-1);const i=Math.floor(seg);const f=seg-i;
+  if(i>=p.length-1){const c=p[p.length-1];return`rgb(${c[0]},${c[1]},${c[2]})`}
+  const c=lerpC(p[i],p[i+1],f);return`rgb(${c[0]},${c[1]},${c[2]})`;
 }
 
-// ═══════ CALENDAR ═══════
+// ── Signal Cards ──
+function buildSignalCards(){
+  const g=$('sgrid');g.innerHTML='';
+  if(state.ig){
+    const ol=results.meta?.ig_online_followers;
+    const hasOL=ol?.data;
+    const si=signalInfo.ig;
+    const wPct=si?.weight?Math.round(si.weight*100):0;
+    g.innerHTML+=`<div class="sig">
+      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ${hasOL?'ok':'warn'}">${hasOL?'✓ Real data':'⚠ Estimated'}</span></div>
+      <div class="sig-name">Online Followers</div>
+      <div class="sig-val">${hasOL?fmt(si.peak)+' peak':'—'}</div>
+      <div class="sig-desc">${hasOL?'24 hourly data points · Peak at '+fmtH(si.peakHour):'Using general IG activity patterns'}</div>
+      <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:${wPct}%"></div></div><div class="sig-wt-label">${wPct}% of schedule</div></div>
+    </div>`;
+    const igPosts=results.meta?.ig_post_history;
+    g.innerHTML+=`<div class="sig">
+      <div class="sig-top"><span class="sig-plat ig">Instagram</span><span class="sig-badge ${igPosts?.count>0?'ok':'warn'}">${igPosts?.count>0?'✓ Analyzed':'⚠ None'}</span></div>
+      <div class="sig-name">Post History</div>
+      <div class="sig-val">${igPosts?.count||0} posts</div>
+      <div class="sig-desc">Used for day-of-week engagement patterns</div>
+    </div>`;
+  }
+  if(state.fb){
+    const sf=signalInfo.fb;
+    const wPct=sf?.weight?Math.round(sf.weight*100):0;
+    const fbPosts=results.meta?.fb_post_history;
+    g.innerHTML+=`<div class="sig">
+      <div class="sig-top"><span class="sig-plat fb">Facebook</span><span class="sig-badge ${sf?.type==='real'?'ok':'warn'}">${sf?.type==='real'?'✓ Analyzed':'⚠ Estimated'}</span></div>
+      <div class="sig-name">Post Engagement</div>
+      <div class="sig-val">${fbPosts?.count||0} posts</div>
+      <div class="sig-desc">${sf?.type==='real'?'Best engagement: '+DAYS[sf.bestDay]+'s at '+fmtH(sf.bestHour):'General FB patterns'}</div>
+      <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:${wPct}%"></div></div><div class="sig-wt-label">${wPct}% of schedule</div></div>
+    </div>`;
+    const fansOnline=results.meta?.fb_fans_online;
+    g.innerHTML+=`<div class="sig">
+      <div class="sig-top"><span class="sig-plat fb">Facebook</span><span class="sig-badge fail">✗ Deprecated</span></div>
+      <div class="sig-name">Fans Online</div>
+      <div class="sig-val">—</div>
+      <div class="sig-desc">Meta removed this endpoint in Sep 2024. Using post engagement instead.</div>
+    </div>`;
+  }
+  if(state.li){
+    g.innerHTML+=`<div class="sig">
+      <div class="sig-top"><span class="sig-plat" style="background:rgba(10,102,194,.08);color:var(--li)">LinkedIn</span><span class="sig-badge" style="background:rgba(99,102,241,.08);color:#6366f1">Industry</span></div>
+      <div class="sig-name">B2B Benchmarks</div>
+      <div class="sig-val">Tue–Thu</div>
+      <div class="sig-desc">Business hours: 7–9 AM, 12 PM, 5–6 PM based on industry data</div>
+      <div class="sig-wt"><div class="sig-wt-bar"><div class="sig-wt-fill" style="width:10%"></div></div><div class="sig-wt-label">10% of schedule</div></div>
+    </div>`;
+  }
+  $('sigs').classList.add('show');
+}
+
+// ── Recommendations ──
+function buildRecs(){
+  const cg=scoreCache.combined;if(!cg)return;
+  const slots=[];
+  for(let d=0;d<7;d++)for(let h=0;h<24;h++)slots.push({d,h,score:cg[d][h]});
+  slots.sort((a,b)=>b.score-a.score);
+  const picked=[];
+  for(const s of slots){if(picked.length>=5)break;if(picked.some(p=>p.d===s.d&&Math.abs(p.h-s.h)<2))continue;picked.push(s)}
+  if(!picked.length)return;
+
+  const parts=[];
+  if(state.ig&&signalInfo.ig?.type==='real')parts.push('real-time Instagram follower activity');
+  else if(state.ig)parts.push('Instagram engagement patterns');
+  if(state.fb&&signalInfo.fb?.type==='real')parts.push('engagement from '+signalInfo.fb.postCount+' Facebook posts');
+  if(state.li)parts.push('LinkedIn industry benchmarks');
+  $('rdesc').textContent='Based on '+parts.join(' and ')+'.';
+
+  const g=$('rgrid');g.innerHTML='';
+  for(let i=0;i<picked.length;i++){
+    const s=picked[i];
+    let topP='ig',topV=0;
+    if(state.ig&&scoreCache.ig&&scoreCache.ig[s.d][s.h]>topV){topV=scoreCache.ig[s.d][s.h];topP='ig'}
+    if(state.fb&&scoreCache.fb&&scoreCache.fb[s.d][s.h]>topV){topV=scoreCache.fb[s.d][s.h];topP='fb'}
+    if(state.li&&scoreCache.li&&scoreCache.li[s.d][s.h]>topV){topV=scoreCache.li[s.d][s.h];topP='li'}
+    let why='';
+    if(topP==='ig'){const ol=results.meta?.ig_online_followers?.data;why=ol?fmt(ol[String(s.h)]||0)+' followers online':'Peak IG activity'}
+    else if(topP==='fb'){const inf=results.meta?.fb_inferred_times?.data;const fbD=(s.d+1)%7;const v=inf?.[fbD+'-'+s.h];if(v!=null){const allV=Object.values(inf);const avg=allV.reduce((a,b)=>a+b,0)/allV.length;const lift=avg>0?Math.round((v/avg-1)*100):0;why=lift>0?lift+'% above avg':'Strong engagement'}else why='High predicted engagement'}
+    else why='Peak B2B window';
+    const pLabel=topP==='ig'?'Instagram':topP==='fb'?'Facebook':'LinkedIn';
+    g.innerHTML+=`<div class="rec"><div class="rec-rank">#${i+1}</div><span class="rec-tag ${topP}">${pLabel}</span><div class="rec-time">${fmtH(s.h)}</div><div class="rec-day">${DAYS[s.d]}</div><div class="rec-why">${why}</div></div>`;
+  }
+  $('recs').classList.add('show');
+}
+
+// ── Calendar ──
 function renderCal(p){
-  const g=document.getElementById('grid');g.innerHTML='';
+  const g=$('grid');g.innerHTML='';
   const key=p==='all'?'combined':p;
-  const data=scoreCache[key];
-  if(!data)return;
-  updateLegend(key);
-
-  // Header
-  const ce=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls;e.textContent=txt;return e};
+  const grid=scoreCache[key];
+  if(!grid)return;
+  const ce=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls;if(txt)e.textContent=txt;return e};
   g.appendChild(ce('div','gh',''));
   DAYS.forEach(d=>g.appendChild(ce('div','gh',d)));
-
   for(let h=0;h<24;h++){
     const tl=h===0?'12a':h<12?h+'a':h===12?'12p':(h-12)+'p';
     g.appendChild(ce('div','gt',tl));
     for(let d=0;d<7;d++){
-      const val=data[d][h],color=hc(val,key);
-      let tip='<strong>'+DAYS[d]+' '+fh(h)+'</strong><br>Score: '+Math.round(val*100)+'/100';
-      if((p==='ig'||p==='all')&&state.ig){
-        const ol=results.meta?.ig_online;
-        if(ol)tip+='<br>'+fn(ol[String(h)])+' followers online';
-      }
-      if((p==='fb'||p==='all')&&state.fb){
-        const em=results.meta?.fb_eng_map;
-        if(em){const fbD=(d+1)%7,v=em[fbD+'-'+h];if(v!=null)tip+='<br>'+v.toFixed(1)+' avg FB engagement'}
-      }
-      const c=document.createElement('div');c.className='gc';c.style.backgroundColor=color;
-      c.innerHTML='<div class="tip">'+tip+'</div>';g.appendChild(c);
+      const val=grid[d][h];
+      const color=heatColor(val,key);
+      let tip=`<strong>${DAYS[d]} ${fmtH(h)}</strong> · Score: ${(val*100).toFixed(0)}`;
+      if((p==='ig'||p==='all')&&state.ig){const ol=results.meta?.ig_online_followers?.data;if(ol)tip+=`<br>${fmt(ol[String(h)]||0)} followers online`}
+      if((p==='fb'||p==='all')&&state.fb){const inf=results.meta?.fb_inferred_times?.data;if(inf){const fbD=(d+1)%7;const v=inf[fbD+'-'+h];if(v!=null)tip+=`<br>${v.toFixed(1)} avg FB engagement`}}
+      const c=document.createElement('div');c.className='gc';c.style.backgroundColor=color;c.innerHTML=`<div class="tip">${tip}</div>`;g.appendChild(c);
     }
   }
 }
 
-function updateLegend(pal){
-  document.getElementById('legend').innerHTML='<div><div class="leg-bar '+pal+'"></div><div class="leg-lbl"><span>Low</span><span>High</span></div></div>';
-}
-
-function switchTab(el){
+function swTab(el){
   if(el.classList.contains('off'))return;
-  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');activeTab=el.dataset.p;renderCal(activeTab);
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');curTab=el.dataset.p;
+  const pal=curTab==='all'?'combined':curTab;
+  $('leg').innerHTML=`<div><div class="lbar ${pal}"></div><div class="llbl"><span>Low</span><span>High</span></div></div>`;
+  renderCal(curTab);
 }
 
-// ═══════ RECOMMENDATIONS ═══════
-function buildRecs(){
-  const sec=document.getElementById('recs'),grid=document.getElementById('recs-grid'),desc=document.getElementById('recs-desc');
-  grid.innerHTML='';
-  const cg=scoreCache.combined;if(!cg)return;
-
-  const slots=[];
-  for(let d=0;d<7;d++)for(let h=0;h<24;h++)slots.push({d,h,sc:cg[d][h]});
-  slots.sort((a,b)=>b.sc-a.sc);
-
-  const picked=[];
-  for(const s of slots){
-    if(picked.length>=5)break;
-    if(picked.some(p=>p.d===s.d&&Math.abs(p.h-s.h)<2))continue;
-    picked.push(s);
+// ── Methodology ──
+function buildMethodology(){
+  const g=$('mcards');g.innerHTML='';
+  if(state.ig){
+    const si=signalInfo.ig;
+    const desc=si.type==='real'
+      ?`We use your real <strong>online followers</strong> data — hour-by-hour counts of when your ${fmt(si.peak)} followers are active. Peak at <strong>${fmtH(si.peakHour)}</strong>. Combined with day-of-week engagement from your post history.`
+      :'General Instagram activity patterns. Connect an account with 100+ followers for personalized data.';
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}%)</h4><p>${desc}</p><span class="mc-tag ${si.type==='real'?'real':'inferred'}">${si.type==='real'?'Real-time data':'General patterns'}</span></div>`;
   }
-  if(!picked.length)return;
-
-  const parts=[];
-  if(state.ig&&signalInfo.ig?.type==='real')parts.push('real-time follower activity');
-  else if(state.ig)parts.push('Instagram patterns');
-  if(state.fb&&signalInfo.fb?.type==='real')parts.push(signalInfo.fb.postCount+' Facebook posts');
-  if(state.li)parts.push('LinkedIn benchmarks');
-  desc.textContent=parts.length?'Based on '+parts.join(' and ')+'.':'';
-
-  for(let i=0;i<picked.length;i++){
-    const s=picked[i];
-    let topP='',topV=-1;
-    if(state.ig&&scoreCache.ig&&scoreCache.ig[s.d][s.h]>topV){topV=scoreCache.ig[s.d][s.h];topP='ig'}
-    if(state.fb&&scoreCache.fb&&scoreCache.fb[s.d][s.h]>topV){topV=scoreCache.fb[s.d][s.h];topP='fb'}
-    if(state.li&&scoreCache.li&&scoreCache.li[s.d][s.h]>topV){topV=scoreCache.li[s.d][s.h];topP='li'}
-
-    let why='';
-    if(topP==='ig'){const ol=results.meta?.ig_online;why=ol?fn(ol[String(s.h)])+' followers online':'Peak IG activity'}
-    else if(topP==='fb'){
-      const em=results.meta?.fb_eng_map;
-      if(em){const fbD=(s.d+1)%7,v=em[fbD+'-'+s.h];
-        if(v!=null){const allV=Object.values(em),avg=allV.reduce((a,b)=>a+b,0)/allV.length;
-          const lift=avg>0?Math.round((v/avg-1)*100):0;why=lift>0?lift+'% above avg engagement':'Strong engagement'}
-        else why='High predicted engagement'}
-      else why='Peak FB activity'}
-    else if(topP==='li')why='Peak B2B window';
-
-    const pLabel=topP==='ig'?'Instagram':topP==='fb'?'Facebook':'LinkedIn';
-    grid.innerHTML+='<div class="rc"><div class="rc-rank">#'+(i+1)+'</div><span class="rc-plat '+topP+'">'+pLabel+'</span><div class="rc-time">'+fh(s.h)+'</div><div class="rc-day">'+DAYS[s.d]+'</div><div class="rc-why">'+why+'</div></div>';
+  if(state.fb){
+    const sf=signalInfo.fb;
+    const desc=sf.type==='real'
+      ?`Engagement analysis of your last <strong>${sf.postCount} posts</strong>. Best engagement on <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong>. Gaps filled using IG activity as proxy.`
+      :'General Facebook engagement patterns. Meta deprecated real-time audience data in 2024.';
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}%)</h4><p>${desc}</p><span class="mc-tag inferred">Inferred from post history</span></div>`;
   }
-  sec.classList.add('show');
+  if(state.li){
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}%)</h4><p>Industry benchmarks for B2B: <strong>Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</strong> drive the most engagement.</p><span class="mc-tag industry">Industry benchmarks</span></div>`;
+  }
 }
 
-// ═══════ LINKEDIN ═══════
-function showLiModal(){document.getElementById('li-modal').classList.add('show')}
-function closeLiModal(){document.getElementById('li-modal').classList.remove('show')}
+// ── Build Dashboard ──
+function buildDashboard(){
+  try{
+    computeAllScores();
+    buildSignalCards();
+    buildRecs();
+    buildMethodology();
+    renderCal(curTab);
+    $('sched').classList.add('show');
+  }catch(e){
+    console.error('buildDashboard error:',e);
+  }
+}
 
-async function connectLinkedIn(){
-  const token=document.getElementById('li-token').value.trim();
+// ── LinkedIn ──
+function showLiModal(){$('li-modal').classList.add('show')}
+function closeLiModal(){$('li-modal').classList.remove('show')}
+
+async function doLinkedIn(){
+  const token=$('li-tok').value.trim();
   if(!token)return;
   closeLiModal();
   state.li=true;
-  document.getElementById('tab-li').classList.remove('off');
-
-  const btn=document.getElementById('btn-li');
-  btn.className='nav-btn linkedin connected';
-  btn.innerHTML='<svg viewBox="0 0 24 24" fill="white" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg><span>LinkedIn Connected</span>';
-
-  // Show dashboard if not yet
-  if(document.getElementById('dashboard').style.display==='none')showDash();
-
-  // Try fetch profile (usually CORS blocked)
+  $('t-li').classList.replace('off','on');
+  $('hero').classList.add('gone');
+  feedStart('li-connect','Connecting to LinkedIn');
   try{
     const prof=await(await fetch('https://api.linkedin.com/v2/userinfo',{headers:{'Authorization':'Bearer '+token}})).json();
-    results.linkedin={profile:prof};
-  }catch{results.linkedin={profile:null}}
-
-  // Rebuild if we already have meta data
-  if(results.meta){
-    computeAllScores();buildSignals();buildRecs();renderCal(activeTab);
+    results.linkedin={profile:{status:'ok',data:prof}};
+    feedEnd('li-connect',prof.name||'Connected','done');
+  }catch(e){
+    results.linkedin={profile:{status:'fail',note:'CORS blocked'}};
+    feedEnd('li-connect','CORS blocked — using benchmarks','warn');
   }
+  buildDashboard();
+  $('feed-status').textContent='✓ Complete';
+  const btn=$('btn-li');
+  btn.className='nbtn done';btn.innerHTML='<svg viewBox="0 0 24 24" fill="currentColor" width="14" height="14"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg> LinkedIn Connected';
+  btn.onclick=null;
+}
+
+function resetMeta(){
+  if(!window.FB)return;
+  FB.getLoginStatus(function(s){
+    if(s.status==='connected')FB.api('/me/permissions','DELETE',function(){FB.logout(function(){location.reload()})});
+    else location.reload();
+  });
 }
 </script>
 </body>
