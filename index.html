@@ -148,31 +148,29 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .gc .tip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:4px solid transparent;border-top-color:var(--g900)}
 .gc:hover .tip{display:block}
 
-/* ── Methodology ── */
-.meth{margin-top:20px;padding-top:18px;border-top:1px solid var(--g100)}
-.mtitle{font-size:12px;font-weight:700;color:var(--g800);margin-bottom:10px;text-transform:uppercase;letter-spacing:.06em}
-.mcards{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px}
-.mc{background:var(--g50);border:1px solid var(--g100);border-radius:8px;padding:14px}
-.mc h4{font-size:13px;font-weight:700;color:var(--g800);margin-bottom:5px;display:flex;align-items:center;gap:6px}
-.mc p{font-size:12px;color:var(--g500);line-height:1.5}
-.mc-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
-.mc-dot.ig{background:var(--ig)}.mc-dot.fb{background:var(--fb)}.mc-dot.li{background:var(--li)}
-.mc-tag{display:inline-block;font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;margin-top:8px}
-.mc-tag.real{background:rgba(16,185,129,.08);color:var(--ok)}
-.mc-tag.inferred{background:rgba(245,158,11,.08);color:var(--warn)}
-.mc-tag.industry{background:rgba(99,102,241,.08);color:#6366f1}
-.mc-formula{background:#fff;border:1px solid var(--g200);border-radius:6px;padding:12px 14px;margin:8px 0;font-family:'SF Mono',Monaco,Consolas,monospace;font-size:12px;color:var(--g800);line-height:1.8}
-.mc-formula .f-line{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-.mc-formula .f-eq{font-weight:800;color:var(--g900);font-size:14px}
-.mc-formula .f-op{color:var(--g400);font-weight:600}
-.mc-formula .f-term{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:4px;font-weight:600;white-space:nowrap}
-.mc-formula .f-term.ig{background:rgba(225,48,108,.08);color:var(--ig)}
-.mc-formula .f-term.fb{background:rgba(24,119,242,.08);color:var(--fb)}
-.mc-formula .f-term.li{background:rgba(10,102,194,.08);color:var(--li)}
-.mc-formula .f-sub{font-size:10px;color:var(--g500);margin-top:4px}
-.mc-step{display:flex;gap:8px;align-items:flex-start;margin:6px 0}
-.mc-step-num{width:18px;height:18px;border-radius:50%;background:var(--g200);color:var(--g600);font-size:10px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px}
-.mc-step-text{font-size:12px;color:var(--g500);line-height:1.5}
+/* ── Tab Explainer ── */
+.texpl{margin-bottom:18px;padding:20px;background:var(--g50);border:1px solid var(--g100);border-radius:10px;animation:fadeUp .25s}
+.texpl-title{font-size:18px;font-weight:800;color:var(--g900);letter-spacing:-.02em;margin-bottom:4px}
+.texpl-sub{font-size:13px;color:var(--g500);margin-bottom:16px;line-height:1.5}
+.texpl-formula{background:#fff;border:1px solid var(--g200);border-radius:8px;padding:16px 20px;margin-bottom:14px}
+.texpl-formula .tf-label{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--g400);margin-bottom:8px}
+.texpl-formula .tf-expr{font-size:16px;font-weight:700;font-family:'SF Mono',Monaco,Consolas,monospace;color:var(--g900);line-height:1.6;display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.texpl-formula .tf-var{padding:3px 10px;border-radius:5px;font-weight:700}
+.texpl-formula .tf-var.fb{background:rgba(24,119,242,.08);color:var(--fb)}
+.texpl-formula .tf-var.ig{background:rgba(225,48,108,.08);color:var(--ig)}
+.texpl-formula .tf-var.li{background:rgba(10,102,194,.08);color:var(--li)}
+.texpl-formula .tf-var.neutral{background:var(--g100);color:var(--g600)}
+.texpl-formula .tf-op{color:var(--g400);font-weight:500}
+.texpl-steps{display:flex;flex-direction:column;gap:8px}
+.texpl-step{display:flex;gap:10px;align-items:flex-start}
+.texpl-step-n{width:22px;height:22px;border-radius:50%;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.texpl-step-n.fb{background:rgba(24,119,242,.1);color:var(--fb)}
+.texpl-step-n.ig{background:rgba(225,48,108,.1);color:var(--ig)}
+.texpl-step-n.gr{background:rgba(16,185,129,.1);color:var(--ok)}
+.texpl-step-t{font-size:13px;color:var(--g600);line-height:1.55}
+.texpl-step-t strong{color:var(--g800)}
+.texpl-step-t code{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:11px;background:var(--g100);padding:1px 5px;border-radius:3px;color:var(--g700)}
+.texpl-note{margin-top:12px;padding:10px 14px;background:rgba(245,158,11,.06);border:1px solid rgba(245,158,11,.15);border-radius:6px;font-size:12px;color:var(--warn);line-height:1.5}
 
 /* ── Modal ── */
 .modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.4);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
@@ -259,18 +257,14 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
       <div class="chead">
         <span class="ctitle">Weekly Schedule</span>
         <div class="tabs">
-          <button class="tab on" data-p="all" onclick="swTab(this)">Combined</button>
+          <button class="tab on" data-p="fb" id="t-fb" onclick="swTab(this)">Facebook</button>
           <button class="tab off" data-p="ig" id="t-ig" onclick="swTab(this)">Instagram</button>
-          <button class="tab off" data-p="fb" id="t-fb" onclick="swTab(this)">Facebook</button>
-          <button class="tab off" data-p="li" id="t-li" onclick="swTab(this)">LinkedIn</button>
+          <button class="tab off" data-p="all" onclick="swTab(this)">Combined</button>
         </div>
       </div>
-      <div class="leg" id="leg"><div><div class="lbar combined"></div><div class="llbl"><span>Low</span><span>High</span></div></div></div>
+      <div id="tab-explainer"></div>
+      <div class="leg" id="leg"><div><div class="lbar fb"></div><div class="llbl"><span>Low</span><span>High</span></div></div></div>
       <div class="gwrap"><div class="grid" id="grid"></div></div>
-      <div class="meth" id="meth">
-        <div class="mtitle">How we calculated this</div>
-        <div class="mcards" id="mcards"></div>
-      </div>
     </div>
   </div>
 </div>
@@ -300,7 +294,7 @@ const state={ig:false,fb:false,li:false};
 const results={};
 const scoreCache={};
 const signalInfo={};
-let curTab='all';
+let curTab='fb';
 
 // ── Helpers ──
 function fmt(n){return n!=null?Number(n).toLocaleString():'—'}
@@ -375,8 +369,8 @@ function doMetaLogin(){
     if(r.authResponse){
       state.ig=true;state.fb=true;
       $('hero').classList.add('gone');
-      $('t-ig').classList.replace('off','on');
-      $('t-fb').classList.replace('off','on');
+      $('t-ig').classList.remove('off');
+      $('t-fb').classList.remove('off');
       feedStart('connect','Connected to Meta');
       feedEnd('connect','Authenticated','done');
       fetchMetaData(r.authResponse.accessToken);
@@ -913,78 +907,121 @@ function swTab(el){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
   el.classList.add('on');curTab=p;
   $('leg').innerHTML=`<div><div class="lbar ${key}"></div><div class="llbl"><span>Low</span><span>High</span></div></div>`;
+  renderExplainer(p);
   renderCal(curTab);
 }
 
-// ── Methodology ──
-function buildMethodology(){
-  const g=$('mcards');g.innerHTML='';
+// ── Tab Explainer ──
+function renderExplainer(p){
+  const el=$('tab-explainer');
+  if(!el)return;
   const w=signalInfo.combined?.weights||{};
 
-  // 1. FORMULA
-  const terms=[];
-  if(w.ig)terms.push({k:'ig',label:'IG',pct:Math.round(w.ig*100),type:signalInfo.ig?.type});
-  if(w.fb)terms.push({k:'fb',label:'FB',pct:Math.round(w.fb*100),type:signalInfo.fb?.type});
-  if(w.li)terms.push({k:'li',label:'LI',pct:Math.round(w.li*100),type:signalInfo.li?.type});
-  const formulaTerms=terms.map((t,i)=>`${i>0?'<span class="f-op">+</span>':''}<span class="f-term ${t.k}">${t.label}(day,hour) × ${t.pct}%</span>`).join(' ');
-
-  g.innerHTML+=`<div class="mc" style="grid-column:1/-1">
-    <h4>Combined Score Formula</h4>
-    <div class="mc-formula">
-      <div class="f-line"><span class="f-eq">Score(day, hour)</span> <span class="f-op">=</span> ${formulaTerms}</div>
-      <div class="f-sub">Each platform produces a 0–1 score per (day, hour) slot. The combined score is the weighted sum, normalized. Higher = better time to post.</div>
-    </div>
-    <p style="margin-top:8px">Weights depend on data quality: platforms with real data get higher weight, platforms with no data get minimal weight so they don't distort results.</p>
-  </div>`;
-
-  // 2. PER-PLATFORM DETAILS
-  if(state.ig){
-    const si=signalInfo.ig;
-    const igPosts=si.postCount||0;
-    let steps,tagClass,tagText;
-    if(si.type==='real'){
-      steps=`
-        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">Fetch <strong>online_followers</strong> from Meta API — 24 hourly values of how many followers are online</span></div>
-        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Normalize to 0–1: <code>(value − min) / (max − min)</code> → this is the hourly score (80% of IG)</span></div>
-        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Compute day-of-week factor from <strong>${igPosts} posts</strong>: avg (likes+comments) per day, normalized → (20% of IG)</span></div>
-        <div class="mc-step"><span class="mc-step-num">4</span><span class="mc-step-text"><strong>IG(day,hour) = hourly × 0.8 + dayFactor × 0.2</strong></span></div>`;
-      tagClass='real';tagText='Real-time data · peak '+fmt(si.peak)+' at '+fmtH(si.peakHour);
-    }else if(si.type==='inferred'){
-      steps=`
-        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">online_followers API unavailable — using post history instead</span></div>
-        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">From <strong>${igPosts} posts</strong>: group by (day, hour) of posting, compute avg (likes + comments) per slot</span></div>
-        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Normalize to 0–1: <code>(avgEngagement − min) / (max − min)</code></span></div>
-        <div class="mc-step"><span class="mc-step-num">4</span><span class="mc-step-text"><strong>Coverage: ${si.coverage||0}%</strong> of 168 weekly hours have real data. Gaps filled by averaging adjacent slots (±2h, ±1day). No data = 0.5 (neutral)</span></div>`;
-      tagClass='inferred';tagText='From '+igPosts+' posts · best: '+DAYS[si.bestDay]+' '+fmtH(si.bestHour);
-    }else{
-      steps=`<div class="mc-step"><span class="mc-step-num">—</span><span class="mc-step-text">No posts, no online_followers data. All slots = 0.5 (neutral). Weight reduced to ${Math.round((w.ig||0)*100)}% to minimize impact.</span></div>`;
-      tagClass='industry';tagText='No data';
-    }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram · ${Math.round((w.ig||0)*100)}% weight</h4>${steps}<span class="mc-tag ${tagClass}">${tagText}</span></div>`;
-  }
-
-  if(state.fb){
+  if(p==='fb'){
     const sf=signalInfo.fb;
-    let steps;
-    if(sf.type==='real'){
-      steps=`
-        <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">From <strong>${sf.postCount} FB posts</strong>: group by (day, hour), compute avg engagement (reactions + comments + shares) per slot</span></div>
-        <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Normalize to 0–1: <code>(avgEngagement − min) / (max − min)</code></span></div>
-        <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Gaps: 60% from neighbor average, 40% from IG score as proxy</span></div>`;
-    }else{
-      steps=`<div class="mc-step"><span class="mc-step-num">—</span><span class="mc-step-text">No FB post data. All slots = 0.5 (neutral). Weight reduced to ${Math.round((w.fb||0)*100)}%.</span></div>`;
-    }
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook · ${Math.round((w.fb||0)*100)}% weight</h4>${steps}<span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'From '+sf.postCount+' posts · best: '+DAYS[sf.bestDay]+' '+fmtH(sf.bestHour):'No data'}</span></div>`;
+    const count=sf?.postCount||0;
+    const hasData=sf?.type==='real';
+    el.innerHTML=`<div class="texpl">
+      <div class="texpl-title">Facebook Score</div>
+      <div class="texpl-sub">${hasData?'Computed from your actual post performance. Each cell shows how well posts perform at that day and hour.':'No post data available — all hours scored equally.'}</div>
+      ${hasData?`<div class="texpl-formula">
+        <div class="tf-label">Formula for each (day, hour) slot</div>
+        <div class="tf-expr">
+          <span class="tf-var fb">FB(day, hour)</span>
+          <span class="tf-op">=</span>
+          <span class="tf-var neutral">normalize</span>
+          <span class="tf-op">(</span>
+          <span class="tf-var fb">avg engagement</span>
+          <span class="tf-op">)</span>
+        </div>
+      </div>
+      <div class="texpl-steps">
+        <div class="texpl-step"><span class="texpl-step-n fb">1</span><span class="texpl-step-t">Take your <strong>${count} Facebook posts</strong>. For each post, record: day of week, hour posted, and engagement = <code>reactions + comments + shares</code></span></div>
+        <div class="texpl-step"><span class="texpl-step-n fb">2</span><span class="texpl-step-t">Group posts by <strong>(day, hour)</strong>. Compute <strong>average engagement</strong> for each slot. Example: your 3 Tuesday 10AM posts averaged 47 engagements.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n fb">3</span><span class="texpl-step-t">Normalize to 0–1: <code>(slotAvg − min) / (max − min)</code>. Your best slot = 1.0, worst = 0.0.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n fb">4</span><span class="texpl-step-t"><strong>Gap filling:</strong> Hours where you never posted are interpolated: 60% from neighboring hours, 40% from your Instagram pattern as proxy.</span></div>
+      </div>
+      ${sf?.bestDay!=null?`<div class="texpl-note">Best slot found: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong> — this is when your FB posts get the most engagement.</div>`:''}`:
+      `<div class="texpl-note">Connect Meta and have Facebook posts to see data-driven scores here.</div>`}
+    </div>`;
   }
 
-  if(state.li){
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn · ${Math.round((w.li||0)*100)}% weight</h4>
-      <div class="mc-step"><span class="mc-step-num">1</span><span class="mc-step-text">LinkedIn API has no "followers online" endpoint — no personalized data possible</span></div>
-      <div class="mc-step"><span class="mc-step-num">2</span><span class="mc-step-text">Using aggregated industry data: 2.7B engagements, 436K profiles (Sprout Social, 2025)</span></div>
-      <div class="mc-step"><span class="mc-step-num">3</span><span class="mc-step-text">Peak: <strong>Tue–Thu, 10–11 AM</strong>. Secondary: 8–9 AM, noon. Weekends: 15–20%. Day multipliers: Tue/Wed/Thu ×1.0, Mon ×0.8, Fri ×0.75</span></div>
-      <div class="mc-step"><span class="mc-step-num">⚠</span><span class="mc-step-text">Not adjusted for your audience timezone or industry. Treat as general guidance only.</span></div>
-    <span class="mc-tag industry">Industry data (2025)</span></div>`;
+  else if(p==='ig'){
+    const si=signalInfo.ig;
+    const count=si?.postCount||0;
+    el.innerHTML=`<div class="texpl">
+      <div class="texpl-title">Instagram Score</div>
+      <div class="texpl-sub">${si?.type==='real'?'Based on real-time data from Meta API showing when your followers are online.':si?.type==='inferred'?'Computed from your post engagement history. Shows which time slots get the most likes and comments.':'No data available.'}</div>
+      ${si?.type==='real'?`<div class="texpl-formula">
+        <div class="tf-label">Formula for each (day, hour) slot</div>
+        <div class="tf-expr">
+          <span class="tf-var ig">IG(day, hour)</span>
+          <span class="tf-op">=</span>
+          <span class="tf-var ig">onlineFollowers(hour)</span>
+          <span class="tf-op">× 0.8 +</span>
+          <span class="tf-var ig">dayEngagement(day)</span>
+          <span class="tf-op">× 0.2</span>
+        </div>
+      </div>
+      <div class="texpl-steps">
+        <div class="texpl-step"><span class="texpl-step-n ig">1</span><span class="texpl-step-t">Meta API returns <strong>online_followers</strong>: 24 values showing how many of your followers are active each hour.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">2</span><span class="texpl-step-t">Normalize hourly values to 0–1. This is <strong>80%</strong> of the score — it directly measures when your audience is online.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">3</span><span class="texpl-step-t">From <strong>${count} posts</strong>, compute avg engagement per day of week → normalized day factor = <strong>20%</strong> of score.</span></div>
+      </div>
+      <div class="texpl-note">Peak: <strong>${fmt(si.peak)} followers</strong> online at <strong>${fmtH(si.peakHour)}</strong></div>`:
+      si?.type==='inferred'?`<div class="texpl-formula">
+        <div class="tf-label">Formula for each (day, hour) slot</div>
+        <div class="tf-expr">
+          <span class="tf-var ig">IG(day, hour)</span>
+          <span class="tf-op">=</span>
+          <span class="tf-var neutral">normalize</span>
+          <span class="tf-op">(</span>
+          <span class="tf-var ig">avg likes + comments</span>
+          <span class="tf-op">)</span>
+        </div>
+      </div>
+      <div class="texpl-steps">
+        <div class="texpl-step"><span class="texpl-step-n ig">1</span><span class="texpl-step-t"><strong>online_followers</strong> API returned no data — falling back to post history analysis.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">2</span><span class="texpl-step-t">Take your <strong>${count} Instagram posts</strong>. For each: record day, hour, and engagement = <code>likes + comments</code></span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">3</span><span class="texpl-step-t">Group by <strong>(day, hour)</strong>, compute average engagement per slot, normalize to 0–1.</span></div>
+        <div class="texpl-step"><span class="texpl-step-n ig">4</span><span class="texpl-step-t"><strong>Coverage: ${si.coverage||0}%</strong> of the week has real data. Gaps filled from neighboring slots only (±2 hours, ±1 day). No data = 0.5 (neutral).</span></div>
+      </div>
+      ${si?.bestDay!=null?`<div class="texpl-note">Best slot: <strong>${DAYS[si.bestDay]}s at ${fmtH(si.bestHour)}</strong> — highest avg engagement from your posts.</div>`:''}`
+      :`<div class="texpl-note">No IG data. All hours = 0.5 (neutral). This platform barely affects the combined score.</div>`}
+    </div>`;
   }
+
+  else if(p==='all'){
+    const igW=Math.round((w.ig||0)*100);
+    const fbW=Math.round((w.fb||0)*100);
+    const liW=Math.round((w.li||0)*100);
+    const si=signalInfo.ig;
+    const sf=signalInfo.fb;
+    el.innerHTML=`<div class="texpl">
+      <div class="texpl-title">Combined Score</div>
+      <div class="texpl-sub">Weighted mix of all connected platforms. Platforms with better data get more weight.</div>
+      <div class="texpl-formula">
+        <div class="tf-label">Final formula</div>
+        <div class="tf-expr">
+          <span class="tf-var neutral">Score(day, hour)</span>
+          <span class="tf-op">=</span>
+          ${state.fb?`<span class="tf-var fb">FB × ${fbW}%</span>`:''}
+          ${state.fb&&state.ig?'<span class="tf-op">+</span>':''}
+          ${state.ig?`<span class="tf-var ig">IG × ${igW}%</span>`:''}
+          ${(state.fb||state.ig)&&state.li?'<span class="tf-op">+</span>':''}
+          ${state.li?`<span class="tf-var li">LI × ${liW}%</span>`:''}
+        </div>
+      </div>
+      <div class="texpl-steps">
+        ${state.fb?`<div class="texpl-step"><span class="texpl-step-n fb">${fbW}%</span><span class="texpl-step-t"><strong>Facebook</strong> — ${sf?.type==='real'?'from <strong>'+sf.postCount+' posts</strong>: avg engagement per (day, hour). Best: '+DAYS[sf.bestDay]+' '+fmtH(sf.bestHour):'no data, scored flat 0.5 (minimal influence)'}</span></div>`:''}
+        ${state.ig?`<div class="texpl-step"><span class="texpl-step-n ig">${igW}%</span><span class="texpl-step-t"><strong>Instagram</strong> — ${si?.type==='real'?'real-time online followers data, peak '+fmt(si.peak)+' at '+fmtH(si.peakHour):si?.type==='inferred'?'from <strong>'+si.postCount+' posts</strong>: avg likes+comments per slot. Coverage: '+(si.coverage||0)+'%':'no data, scored flat 0.5'}</span></div>`:''}
+        ${state.li?`<div class="texpl-step"><span class="texpl-step-n" style="background:rgba(10,102,194,.1);color:var(--li)">${liW}%</span><span class="texpl-step-t"><strong>LinkedIn</strong> — industry benchmarks (2.7B engagements, Sprout Social 2025). Peak: Tue–Thu 10–11 AM. Not personalized.</span></div>`:''}
+      </div>
+      <div class="texpl-note">Weights are assigned by data quality: real API data (60%) > post history (35–45%) > industry benchmarks (10%) > no data (10%). Flat-scored platforms don't distort results.</div>
+    </div>`;
+  }
+}
+
 }
 
 // ── Build Dashboard ──
@@ -1010,10 +1047,15 @@ function buildDashboard(){
     feedStart('err-recs','Error building recommendations');
     feedEnd('err-recs',e.message,'fail');
   }
+  // Enable Combined tab if we have combined scores
+  if(scoreCache.combined){
+    const allBtn=document.querySelector('[data-p="all"]');
+    if(allBtn)allBtn.classList.remove('off');
+  }
   try{
-    buildMethodology();
+    renderExplainer(curTab);
   }catch(e){
-    console.error('buildMethodology error:',e);
+    console.error('renderExplainer error:',e);
   }
   try{
     renderCal(curTab);
@@ -1034,7 +1076,6 @@ async function doLinkedIn(){
   if(!token)return;
   closeLiModal();
   state.li=true;
-  $('t-li').classList.replace('off','on');
   $('hero').classList.add('gone');
   feedStart('li-connect','Connecting to LinkedIn');
   try{
