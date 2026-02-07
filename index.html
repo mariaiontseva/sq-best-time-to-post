@@ -306,12 +306,15 @@ async function gqlAll(path,token,maxPages){
       const r=await fetch(url);
       const j=await r.json();
       if(j.error){console.warn('gqlAll error on page',pg,j.error.message);break}
-      if(j.data)all=all.concat(j.data);
+      const count=j.data?.length||0;
+      all=all.concat(j.data||[]);
+      console.log(`gqlAll page ${pg}: ${count} items (total: ${all.length}), has next: ${!!j.paging?.next}`);
       // paging.next already contains access_token, use it directly
       url=j.paging?.next||null;
       pg++;
     }catch(e){console.error('gqlAll fetch error:',e);break}
   }
+  console.log(`gqlAll done: ${all.length} total items across ${pg} pages`);
   return all;
 }
 
@@ -417,9 +420,11 @@ async function fetchMetaData(token){
       R._igPosts=md;
       R.ig_post_history={status:md.length>0?'ok':'warn',count:md.length};
       if(md.length===0){
-        feedEnd('ig-posts','0 posts — check IG permissions or post something first','warn');
+        feedEnd('ig-posts','0 posts — check instagram_basic permission','warn');
       }else{
-        feedEnd('ig-posts',md.length+' posts analyzed','done');
+        const profileCount=prof.media_count||0;
+        const note=profileCount>md.length?` (profile shows ${profileCount} — API may limit access for apps in dev mode)`:'';
+        feedEnd('ig-posts',md.length+' posts analyzed'+note,'done');
       }
       // Update IG card post count
       updateIGPosts(prof.media_count,md.length);
@@ -441,7 +446,9 @@ async function fetchMetaData(token){
             feedEnd('ig-online','Empty data returned','warn');
           }
         }else{
-          feedEnd('ig-online',ol.error?.message||'Not available (need 100+ followers)','warn');
+          const reason=ol.error?.message||(!ol.data?.length?'API returned no insight data — check instagram_manage_insights permission':'Empty value returned');
+          feedEnd('ig-online',reason,'warn');
+          console.warn('online_followers response:',JSON.stringify(ol));
         }
       }catch(e){
         R.ig_online_followers={status:'fail',data:null};
@@ -824,22 +831,34 @@ function swTab(el){
 // ── Methodology ──
 function buildMethodology(){
   const g=$('mcards');g.innerHTML='';
+
+  // Algorithm overview
+  g.innerHTML+=`<div class="mc"><h4>How the score is calculated</h4><p>Each hour of the week gets a <strong>0–100 score</strong>. We combine signals from each connected platform using weighted averages. The final score = <strong>${Object.entries(signalInfo.combined?.weights||{}).map(([k,w])=>`${k.toUpperCase()} × ${Math.round(w*100)}%`).join(' + ')}</strong>. Higher score = more of your audience is active or engaged at that time.</p></div>`;
+
   if(state.ig){
     const si=signalInfo.ig;
-    const desc=si.type==='real'
-      ?`We use your real <strong>online followers</strong> data — hour-by-hour counts of when your ${fmt(si.peak)} followers are active. Peak at <strong>${fmtH(si.peakHour)}</strong>. Combined with day-of-week engagement from your post history.`
-      :'General Instagram activity patterns. Connect an account with 100+ followers for personalized data.';
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}%)</h4><p>${desc}</p><span class="mc-tag ${si.type==='real'?'real':'inferred'}">${si.type==='real'?'Real-time data':'General patterns'}</span></div>`;
+    const igPosts=results.meta?.ig_post_history?.count||0;
+    let desc;
+    if(si.type==='real'){
+      desc=`<strong>Signal 1 — Online followers (80% of IG score):</strong> Meta API provides hour-by-hour counts of when your ${fmt(si.peak)} followers are online. Peak at <strong>${fmtH(si.peakHour)}</strong>. We normalize to 0–1 range.<br><strong>Signal 2 — Day-of-week engagement (20% of IG score):</strong> From your <strong>${igPosts} posts</strong>, we compute average likes+comments per day of week.`;
+    }else{
+      desc=`<strong>No personalized IG data available</strong> — online_followers API returned no data. Using general patterns: peaks at 7–9 AM, 12–1 PM, 7–9 PM, slightly lower on weekends.`;
+      if(igPosts>0)desc+=` Day-of-week patterns derived from your <strong>${igPosts} posts</strong>.`;
+    }
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot ig"></span>Instagram (${Math.round((signalInfo.combined?.weights?.ig||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${si.type==='real'?'real':'inferred'}">${si.type==='real'?'Real-time data':'General patterns'}</span></div>`;
   }
   if(state.fb){
     const sf=signalInfo.fb;
-    const desc=sf.type==='real'
-      ?`Engagement analysis of your last <strong>${sf.postCount} posts</strong>. Best engagement on <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong>. Gaps filled using IG activity as proxy.`
-      :'General Facebook engagement patterns. Meta deprecated real-time audience data in 2024.';
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}%)</h4><p>${desc}</p><span class="mc-tag inferred">Inferred from post history</span></div>`;
+    let desc;
+    if(sf.type==='real'){
+      desc=`<strong>Signal — Post engagement by hour:</strong> From your last <strong>${sf.postCount} FB posts</strong>, we compute average engagement (reactions + comments + shares) for each (day, hour) slot. Best: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong>. Hours with no posts use neighbor interpolation + IG data as proxy.`;
+    }else{
+      desc=`<strong>No FB post data available</strong>. Using general patterns: peaks at 9–11 AM, 1–3 PM, lower on weekends. Meta deprecated real-time audience data (page_fans_online) in Sep 2024.`;
+    }
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot fb"></span>Facebook (${Math.round((signalInfo.combined?.weights?.fb||0)*100)}% weight)</h4><p>${desc}</p><span class="mc-tag ${sf.type==='real'?'real':'inferred'}">${sf.type==='real'?'Inferred from post history':'General patterns'}</span></div>`;
   }
   if(state.li){
-    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}%)</h4><p>Industry benchmarks for B2B: <strong>Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</strong> drive the most engagement.</p><span class="mc-tag industry">Industry benchmarks</span></div>`;
+    g.innerHTML+=`<div class="mc"><h4><span class="mc-dot li"></span>LinkedIn (${Math.round((signalInfo.combined?.weights?.li||0)*100)}% weight)</h4><p><strong>Industry benchmarks only</strong> — LinkedIn API has no "followers online" endpoint. Using B2B research data: peak engagement <strong>Tue–Thu, 7–9 AM, 12 PM, 5–6 PM</strong>. Weekends scored at 15%.</p><span class="mc-tag industry">Industry benchmarks</span></div>`;
   }
 }
 
