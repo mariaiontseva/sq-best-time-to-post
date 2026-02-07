@@ -441,9 +441,13 @@ async function fetchMetaData(token) {
       const olData = ol.data?.[0]?.values?.[0]?.value;
       R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : (ol.error?.message || 'Permission not granted yet') };
 
-      // Demographics (v21+ uses new metric names)
-      const demo = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value`, token);
-      R.ig_audience_geo = { status: demo.data?.length > 0 ? 'ok' : 'fail', data: demo.data || null, note: demo.data?.length > 0 ? `${demo.data.length} demographic metrics` : (demo.error?.message || 'Not available') };
+      // Demographics (v21+ requires breakdown param)
+      const demoCity = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=city`, token);
+      const demoAge = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=age`, token);
+      const demoGender = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=gender`, token);
+      const demoCountry = await gql(`${igId}/insights?metric=follower_demographics&period=lifetime&timeframe=this_month&metric_type=total_value&breakdown=country`, token);
+      const demoAll = [...(demoCity.data||[]), ...(demoAge.data||[]), ...(demoGender.data||[]), ...(demoCountry.data||[])];
+      R.ig_audience_geo = { status: demoAll.length > 0 ? 'ok' : 'fail', data: demoAll, note: demoAll.length > 0 ? `City, age, gender, country` : (demoCity.error?.message || 'Not available') };
     } else {
       R.ig_profile = { status: 'fail', note: 'No IG Business account linked' };
     }
