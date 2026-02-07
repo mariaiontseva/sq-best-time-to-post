@@ -295,6 +295,26 @@ function fmt(n){return n!=null?Number(n).toLocaleString():'—'}
 function fmtH(h){if(h===0)return'12 AM';if(h<12)return h+' AM';if(h===12)return'12 PM';return(h-12)+' PM'}
 function $(id){return document.getElementById(id)}
 
+// ── Paginated fetch: follows paging.next to get ALL results ──
+async function gqlAll(path,token,maxPages){
+  maxPages=maxPages||10;
+  let all=[];
+  let url=`https://graph.facebook.com/v21.0/${path}${path.includes('?')?'&':'?'}access_token=${token}`;
+  let pg=0;
+  while(url&&pg<maxPages){
+    try{
+      const r=await fetch(url);
+      const j=await r.json();
+      if(j.error){console.warn('gqlAll error on page',pg,j.error.message);break}
+      if(j.data)all=all.concat(j.data);
+      // paging.next already contains access_token, use it directly
+      url=j.paging?.next||null;
+      pg++;
+    }catch(e){console.error('gqlAll fetch error:',e);break}
+  }
+  return all;
+}
+
 function setAvatar(elId,url){
   if(!url)return;
   const el=$(elId);
@@ -391,13 +411,16 @@ async function fetchMetaData(token){
       feedEnd('ig-prof',`@${prof.username||'?'} · ${fmt(prof.followers_count)} followers`,'done');
       showIGCard(prof,page.category);
 
-      // 3. IG Posts
-      feedStart('ig-posts','Analyzing Instagram posts');
-      const media=await gql(`${igId}/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100`,token);
-      const md=media.data||[];
+      // 3. IG Posts (with pagination — fetch ALL)
+      feedStart('ig-posts','Analyzing Instagram posts (fetching all pages...)');
+      const md=await gqlAll(`${igId}/media?fields=id,caption,timestamp,media_type,like_count,comments_count&limit=100`,token,10);
       R._igPosts=md;
       R.ig_post_history={status:md.length>0?'ok':'warn',count:md.length};
-      feedEnd('ig-posts',md.length+' posts analyzed',md.length>0?'done':'warn');
+      if(md.length===0){
+        feedEnd('ig-posts','0 posts — check IG permissions or post something first','warn');
+      }else{
+        feedEnd('ig-posts',md.length+' posts analyzed','done');
+      }
       // Update IG card post count
       updateIGPosts(prof.media_count,md.length);
 
@@ -435,15 +458,19 @@ async function fetchMetaData(token){
       }catch(e){feedEnd('ig-demo','Error','fail')}
     }else{
       feedStart('ig-prof','Instagram Business account');
-      feedEnd('ig-prof','Not linked to this page','warn');
+      feedEnd('ig-prof','Not linked to this page — switch to Business/Creator account in IG settings and link to your FB Page','fail');
       state.ig=false;
       $('t-ig').classList.replace('on','off');
+      // Show IG card with error state
+      const c=$('pc-ig');c.classList.add('show');
+      $('ig-name').textContent='Not connected';
+      $('ig-handle').textContent='Link an IG Business account to your FB Page';
+      $('ig-stats').innerHTML='<div class="ps"><span class="ps-n" style="color:var(--err)">0</span><span class="ps-l">No IG data</span></div>';
     }
 
-    // 7. FB Posts
+    // 7. FB Posts (with pagination — fetch ALL)
     feedStart('fb-posts','Analyzing Facebook posts');
-    const posts=await gql(`${page.id}/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100`,pt);
-    const pd=posts.data||[];
+    const pd=await gqlAll(`${page.id}/feed?fields=id,message,created_time,shares,reactions.summary(true),comments.summary(true)&limit=100`,pt,10);
     R.fb_post_history={status:pd.length>0?'ok':'warn',count:pd.length};
     feedEnd('fb-posts',pd.length+' posts with engagement',pd.length>0?'done':'warn');
     updateFBPosts(pd.length);
@@ -488,8 +515,13 @@ async function fetchMetaData(token){
 
   }catch(e){
     console.error('fetchMetaData error:',e);
-    feedStart('error','Error occurred');
-    feedEnd('error',e.message,'fail');
+    feedStart('error','Error fetching data');
+    feedEnd('error',e.message||'Unknown error — check console','fail');
+    // Still try to build dashboard with whatever data we got
+    try{
+      results.meta=R;
+      buildDashboard();
+    }catch(e2){console.error('Dashboard build after error:',e2)}
   }
 }
 
@@ -568,10 +600,12 @@ function computeIG(){
 function computeIGDayFactor(){
   const dayEng=Array(7).fill(0),dayCnt=Array(7).fill(0);
   const posts=results.meta?._igPosts||[];
+  if(posts.length===0)return Array(7).fill(0.5);
   for(const p of posts){const dt=new Date(p.timestamp);const d=(dt.getUTCDay()+6)%7;dayEng[d]+=(p.like_count||0)+(p.comments_count||0);dayCnt[d]++}
   const dayAvg=dayEng.map((t,i)=>dayCnt[i]>0?t/dayCnt[i]:0);
-  const maxA=Math.max(...dayAvg)||1;
-  return maxA===0?Array(7).fill(0.5):dayAvg.map(v=>v/maxA);
+  const maxA=Math.max(...dayAvg);
+  if(maxA===0)return Array(7).fill(0.5);
+  return dayAvg.map(v=>v/maxA);
 }
 
 function computeFB(){
@@ -726,7 +760,7 @@ function renderCal(p){
   const g=$('grid');g.innerHTML='';
   const key=p==='all'?'combined':p;
   const grid=scoreCache[key];
-  if(!grid)return;
+  if(!grid){console.warn('renderCal: no grid for',key);return}
   const ce=(tag,cls,txt)=>{const e=document.createElement(tag);e.className=cls;if(txt)e.textContent=txt;return e};
   g.appendChild(ce('div','gh',''));
   DAYS.forEach(d=>g.appendChild(ce('div','gh',d)));
@@ -746,10 +780,12 @@ function renderCal(p){
 
 function swTab(el){
   if(el.classList.contains('off'))return;
+  const p=el.dataset.p;
+  const key=p==='all'?'combined':p;
+  if(!scoreCache[key]){console.warn('No score data for',key);return}
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
-  el.classList.add('on');curTab=el.dataset.p;
-  const pal=curTab==='all'?'combined':curTab;
-  $('leg').innerHTML=`<div><div class="lbar ${pal}"></div><div class="llbl"><span>Low</span><span>High</span></div></div>`;
+  el.classList.add('on');curTab=p;
+  $('leg').innerHTML=`<div><div class="lbar ${key}"></div><div class="llbl"><span>Low</span><span>High</span></div></div>`;
   renderCal(curTab);
 }
 
@@ -779,13 +815,37 @@ function buildMethodology(){
 function buildDashboard(){
   try{
     computeAllScores();
+  }catch(e){
+    console.error('computeAllScores error:',e);
+    feedStart('err-scores','Error computing scores');
+    feedEnd('err-scores',e.message,'fail');
+  }
+  try{
     buildSignalCards();
+  }catch(e){
+    console.error('buildSignalCards error:',e);
+    feedStart('err-sigs','Error building signals');
+    feedEnd('err-sigs',e.message,'fail');
+  }
+  try{
     buildRecs();
+  }catch(e){
+    console.error('buildRecs error:',e);
+    feedStart('err-recs','Error building recommendations');
+    feedEnd('err-recs',e.message,'fail');
+  }
+  try{
     buildMethodology();
+  }catch(e){
+    console.error('buildMethodology error:',e);
+  }
+  try{
     renderCal(curTab);
     $('sched').classList.add('show');
   }catch(e){
-    console.error('buildDashboard error:',e);
+    console.error('renderCal error:',e);
+    feedStart('err-cal','Error rendering heatmap');
+    feedEnd('err-cal',e.message,'fail');
   }
 }
 
