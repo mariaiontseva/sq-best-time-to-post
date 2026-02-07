@@ -102,6 +102,13 @@ body{font-family:'Inter',system-ui,sans-serif;background:var(--g50);color:var(--
 .sig-meta{font-size:12px;color:var(--g400)}
 .sig-insight{font-size:13px;color:var(--g600);line-height:1.4}
 .sig-insight strong{color:var(--g800)}
+.sig-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.sig-tag{font-size:11px;font-weight:600;padding:4px 12px;border-radius:6px;white-space:nowrap}
+.sig-tag.green{background:rgba(16,185,129,.1);color:#059669}
+.sig-tag.amber{background:rgba(245,158,11,.1);color:#d97706}
+.sig-tag.red{background:rgba(239,68,68,.1);color:#dc2626}
+.sig-tag.blue{background:rgba(59,130,246,.1);color:#2563eb}
+.sig-tag.purple{background:rgba(139,92,246,.1);color:#7c3aed}
 
 /* ── Profile Health ── */
 .health{display:none;margin-bottom:20px}
@@ -707,84 +714,104 @@ function heatColor(val,pal){
 }
 
 // ── Profile Health ──
+function healthRows(audience,audienceLabel,posts,postDates,dateField,engagement,engTotal){
+  // Consistent 4 rows: 1.Audience 2.Content 3.Engagement 4.Frequency
+  const rows=[];
+  // 1. Audience
+  if(audience>=10000)rows.push({s:'good',t:'<strong>'+fmt(audience)+'</strong> '+audienceLabel+' — strong audience'});
+  else if(audience>=1000)rows.push({s:'good',t:'<strong>'+fmt(audience)+'</strong> '+audienceLabel+' — established'});
+  else if(audience>=100)rows.push({s:'ok',t:'<strong>'+fmt(audience)+'</strong> '+audienceLabel+' — keep growing'});
+  else rows.push({s:'weak',t:'<strong>'+fmt(audience)+'</strong> '+audienceLabel+' — grow your audience'});
+  // 2. Content
+  if(posts>=50)rows.push({s:'good',t:'<strong>'+posts+' posts</strong> analyzed — highly accurate'});
+  else if(posts>=20)rows.push({s:'good',t:'<strong>'+posts+' posts</strong> analyzed — solid accuracy'});
+  else if(posts>=10)rows.push({s:'ok',t:'<strong>'+posts+' posts</strong> analyzed — more posts = better accuracy'});
+  else rows.push({s:'weak',t:'Only <strong>'+posts+' posts</strong> — post more for better data'});
+  // 3. Engagement
+  if(posts>0&&audience>0){
+    const rate=engTotal/posts/audience*100;
+    if(rate>=3)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — excellent'});
+    else if(rate>=1)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — solid'});
+    else if(rate>=0.5)rows.push({s:'ok',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — room to grow'});
+    else rows.push({s:'weak',t:'<strong>'+rate.toFixed(rate<0.1?2:1)+'%</strong> engagement rate — needs improvement'});
+  }else{
+    rows.push({s:'weak',t:'No engagement data yet'});
+  }
+  // 4. Frequency
+  if(postDates.length>=2){
+    const ts=postDates.map(p=>new Date(p[dateField]).getTime()).sort((a,b)=>a-b);
+    const spanW=(ts[ts.length-1]-ts[0])/(7*24*3600000);
+    const pw=spanW>0?postDates.length/spanW:postDates.length;
+    if(pw>=3)rows.push({s:'good',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — great consistency'});
+    else if(pw>=1)rows.push({s:'ok',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — aim for 3x/week'});
+    else rows.push({s:'weak',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — aim for 3x/week'});
+  }else{
+    rows.push({s:'weak',t:'Not enough data to measure frequency'});
+  }
+  return rows;
+}
+
 function buildProfileHealth(){
   const el=$('hcards');el.innerHTML='';
   const igProf=results.meta?.ig_profile?.data;
   const igPosts=results.meta?._igPosts||[];
-  const igOl=results.meta?.ig_online_followers;
   const fbPosts=results.meta?._fbPosts||[];
   const fbFans=results.meta?.fb_fan_count||0;
   const igSvg='<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
   const fbSvg='<svg viewBox="0 0 24 24"><path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/></svg>';
+  const renderCard=(icon,iconCls,name,rows)=>{
+    const goods=rows.filter(r=>r.s==='good').length;
+    const label=goods===rows.length?'Strong':goods>=rows.length/2?'Growing':'Needs work';
+    const cls=goods===rows.length?'good':goods>=rows.length/2?'ok':'weak';
+    return `<div class="hcard"><div class="hcard-head"><div class="hcard-icon ${iconCls}">${icon}</div><span class="hcard-plat">${name}</span><span class="hcard-score ${cls}">${label}</span></div>${rows.map(r=>`<div class="hrow"><span class="hrow-icon ${r.s}">${r.s==='good'?'✓':r.s==='ok'?'⚠':'✗'}</span><span class="hrow-text">${r.t}</span></div>`).join('')}</div>`;
+  };
   let html='';
-
-  // Instagram health
   if(state.ig&&igProf){
-    const followers=igProf.followers_count||0;
-    const rows=[];
-    if(igOl?.status==='ok')rows.push({s:'good',t:'Live follower data available — <strong>strongest signal</strong>'});
-    else if(followers>=100)rows.push({s:'ok',t:'Live data unavailable — using engagement history instead'});
-    else rows.push({s:'weak',t:'Under 100 followers — grow your audience for better data'});
-    if(igPosts.length>=50)rows.push({s:'good',t:'<strong>'+igPosts.length+' posts</strong> analyzed — highly accurate'});
-    else if(igPosts.length>=20)rows.push({s:'good',t:'<strong>'+igPosts.length+' posts</strong> analyzed — solid accuracy'});
-    else if(igPosts.length>=10)rows.push({s:'ok',t:'<strong>'+igPosts.length+' posts</strong> analyzed — more posts = better accuracy'});
-    else rows.push({s:'weak',t:'Only <strong>'+igPosts.length+' posts</strong> — keep posting to improve recommendations'});
-    if(igPosts.length>0&&followers>0){
-      const tEng=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0);
-      const rate=tEng/igPosts.length/followers*100;
-      if(rate>=3)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — excellent'});
-      else if(rate>=1)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — average'});
-      else rows.push({s:'ok',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — try posting at recommended times'});
-    }
-    if(igPosts.length>=2){
-      const dates=igPosts.map(p=>new Date(p.timestamp).getTime()).sort((a,b)=>a-b);
-      const spanW=(dates[dates.length-1]-dates[0])/(7*24*3600000);
-      const pw=spanW>0?igPosts.length/spanW:igPosts.length;
-      if(pw>=3)rows.push({s:'good',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — great consistency'});
-      else if(pw>=1)rows.push({s:'ok',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — try 3-4x/week for growth'});
-      else rows.push({s:'weak',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — aim for 3x/week'});
-    }
-    const goods=rows.filter(r=>r.s==='good').length;
-    const label=goods===rows.length?'Strong':goods>=rows.length/2?'Growing':'Needs work';
-    const cls=goods===rows.length?'good':goods>=rows.length/2?'ok':'weak';
-    html+=`<div class="hcard"><div class="hcard-head"><div class="hcard-icon ig">${igSvg}</div><span class="hcard-plat">Instagram</span><span class="hcard-score ${cls}">${label}</span></div>${rows.map(r=>`<div class="hrow"><span class="hrow-icon ${r.s}">${r.s==='good'?'✓':r.s==='ok'?'⚠':'✗'}</span><span class="hrow-text">${r.t}</span></div>`).join('')}</div>`;
+    const igEng=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0);
+    html+=renderCard(igSvg,'ig','Instagram',healthRows(igProf.followers_count||0,'followers',igPosts.length,igPosts,'timestamp',igProf.followers_count||0,igEng));
   }
-
-  // Facebook health
   if(state.fb){
-    const rows=[];
-    if(fbPosts.length>=50)rows.push({s:'good',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — highly accurate'});
-    else if(fbPosts.length>=20)rows.push({s:'good',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — solid accuracy'});
-    else if(fbPosts.length>=10)rows.push({s:'ok',t:'<strong>'+fbPosts.length+' posts</strong> analyzed — more posts = better accuracy'});
-    else rows.push({s:'weak',t:'Only <strong>'+fbPosts.length+' posts</strong> — keep posting to improve recommendations'});
-    if(fbFans>=1000)rows.push({s:'good',t:'<strong>'+fmt(fbFans)+'</strong> fans — established page'});
-    else if(fbFans>=100)rows.push({s:'ok',t:'<strong>'+fmt(fbFans)+'</strong> fans — keep growing your page'});
-    else rows.push({s:'weak',t:'<strong>'+fmt(fbFans)+'</strong> fans — promote your page to grow'});
-    if(fbPosts.length>0&&fbFans>0){
-      const tEng=fbPosts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0);
-      const rate=tEng/fbPosts.length/fbFans*100;
-      if(rate>=1)rows.push({s:'good',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — strong'});
-      else if(rate>=0.5)rows.push({s:'ok',t:'<strong>'+rate.toFixed(1)+'%</strong> engagement rate — average for Facebook'});
-      else rows.push({s:'ok',t:'<strong>'+rate.toFixed(2)+'%</strong> engagement rate — post at optimal times to improve'});
-    }
-    if(fbPosts.length>=2){
-      const dates=fbPosts.map(p=>new Date(p.created_time).getTime()).sort((a,b)=>a-b);
-      const spanW=(dates[dates.length-1]-dates[0])/(7*24*3600000);
-      const pw=spanW>0?fbPosts.length/spanW:fbPosts.length;
-      if(pw>=5)rows.push({s:'good',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — great consistency'});
-      else if(pw>=2)rows.push({s:'ok',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — try daily for more data'});
-      else rows.push({s:'weak',t:'Posting <strong>'+pw.toFixed(1)+'x/week</strong> — consistency drives results'});
-    }
-    const goods=rows.filter(r=>r.s==='good').length;
-    const label=goods===rows.length?'Strong':goods>=rows.length/2?'Growing':'Needs work';
-    const cls=goods===rows.length?'good':goods>=rows.length/2?'ok':'weak';
-    html+=`<div class="hcard"><div class="hcard-head"><div class="hcard-icon fb">${fbSvg}</div><span class="hcard-plat">Facebook</span><span class="hcard-score ${cls}">${label}</span></div>${rows.map(r=>`<div class="hrow"><span class="hrow-icon ${r.s}">${r.s==='good'?'✓':r.s==='ok'?'⚠':'✗'}</span><span class="hrow-text">${r.t}</span></div>`).join('')}</div>`;
+    const fbEng=fbPosts.reduce((s,p)=>s+(p.reactions?.summary?.total_count||0)+(p.comments?.summary?.total_count||0)+(p.shares?.count||0),0);
+    html+=renderCard(fbSvg,'fb','Facebook',healthRows(fbFans,'fans',fbPosts.length,fbPosts,'created_time',fbFans,fbEng));
   }
-
   if(html){el.innerHTML=html;$('health').classList.add('show')}
 }
 
 // ── Signal Cards ──
+function buildAdviceTags(){
+  // Generate actionable advice tags based on health data
+  const tags=[];
+  const igPosts=results.meta?._igPosts||[];
+  const fbPosts=results.meta?._fbPosts||[];
+  const igProf=results.meta?.ig_profile?.data;
+  const fbFans=results.meta?.fb_fan_count||0;
+  // Frequency
+  const allPosts=[...igPosts.map(p=>new Date(p.timestamp).getTime()),...fbPosts.map(p=>new Date(p.created_time).getTime())].sort((a,b)=>a-b);
+  if(allPosts.length>=2){
+    const spanW=(allPosts[allPosts.length-1]-allPosts[0])/(7*24*3600000);
+    const pw=spanW>0?allPosts.length/spanW:allPosts.length;
+    if(pw<3)tags.push({c:'amber',t:'Post at least 3x/week'});
+  }
+  // Content volume
+  if(igPosts.length<20&&igPosts.length>0)tags.push({c:'purple',t:'Recycle your best content'});
+  // Audience
+  const followers=igProf?.followers_count||0;
+  if(followers<500&&followers>0)tags.push({c:'blue',t:'Grow your following'});
+  if(fbFans<100&&fbFans>0)tags.push({c:'blue',t:'Promote your page'});
+  // Engagement
+  if(igPosts.length>0&&followers>0){
+    const rate=igPosts.reduce((s,p)=>s+(p.like_count||0)+(p.comments_count||0),0)/igPosts.length/followers*100;
+    if(rate<1)tags.push({c:'amber',t:'Reply to comments'});
+    if(rate>=3)tags.push({c:'green',t:'Great engagement!'});
+  }
+  // Live data
+  if(results.meta?.ig_online_followers?.status==='ok')tags.push({c:'green',t:'Live audience data'});
+  // General
+  tags.push({c:'green',t:'Post at recommended times'});
+  if(igPosts.length>0||fbPosts.length>0)tags.push({c:'blue',t:'Try new time slots'});
+  return tags;
+}
+
 function buildSignalCards(){
   const g=$('sgrid');g.innerHTML='';
   const igSvg='<svg viewBox="0 0 24 24"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.052.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98C8.333 23.986 8.741 24 12 24c3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z"/></svg>';
@@ -805,6 +832,9 @@ function buildSignalCards(){
     const sf=signalInfo.fb;
     g.innerHTML+=`<div class="sig"><div class="sig-icon fb">${fbSvg}</div><div class="sig-body"><div class="sig-head"><span class="sig-plat">Facebook</span><span class="sig-meta">${sf.postCount} posts analyzed</span></div><div class="sig-insight">Best engagement: <strong>${DAYS[sf.bestDay]}s at ${fmtH(sf.bestHour)}</strong></div></div></div>`;
   }
+  // Advice tags
+  const tags=buildAdviceTags();
+  if(tags.length)g.innerHTML+=`<div class="sig-tags">${tags.map(t=>`<span class="sig-tag ${t.c}">${t.t}</span>`).join('')}</div>`;
   if(g.innerHTML)$('sigs').classList.add('show');
 }
 
