@@ -417,16 +417,16 @@ async function fetchMetaData(token) {
           if (ins.data?.length) igInsOk = true;
         } catch {}
       }
-      R.ig_post_metrics = { status: igInsOk ? 'ok' : 'fail', note: igInsOk ? 'Reach, impressions, saves' : 'Needs instagram_manage_insights' };
+      R.ig_post_metrics = { status: igInsOk ? 'ok' : 'fail', note: igInsOk ? 'Reach, impressions, saves' : 'Permission not granted yet' };
 
       // THE KEY: online_followers
       const ol = await gql(`${igId}/insights?metric=online_followers&period=lifetime`, token);
       const olData = ol.data?.[0]?.values?.[0]?.value;
-      R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : 'Need 100+ followers' };
+      R.ig_online_followers = { status: olData ? 'ok' : 'fail', data: olData || null, note: olData ? 'Hourly data received!' : (ol.error?.message || 'Permission not granted yet') };
 
       // Demographics
       const demo = await gql(`${igId}/insights?metric=audience_city,audience_country,audience_gender_age&period=lifetime`, token);
-      R.ig_audience_geo = { status: demo.data?.length > 0 ? 'ok' : 'fail', data: demo.data || null, note: demo.data?.length > 0 ? `${demo.data.length} demographic metrics` : 'Need 100+ followers' };
+      R.ig_audience_geo = { status: demo.data?.length > 0 ? 'ok' : 'fail', data: demo.data || null, note: demo.data?.length > 0 ? `${demo.data.length} demographic metrics` : (demo.error?.message || 'Permission not granted yet') };
     } else {
       R.ig_profile = { status: 'fail', note: 'No IG Business account linked' };
     }
@@ -548,10 +548,10 @@ function showSummary(R) {
   lines.push(`<br><b style="color:var(--red)">&#10005; Not available (${fail})</b>:`);
   const fails = [];
   if (R.fb_fans_online?.status === 'fail') fails.push('FB fans online — <i>deprecated by Meta Sep 2024, no replacement</i>');
-  if (R.ig_audience_geo?.status === 'fail') fails.push('IG audience demographics — <i>account needs 100+ followers</i>');
-  if (R.ig_post_metrics?.status === 'fail') fails.push('IG per-post insights — <i>need instagram_manage_insights permission granted</i>');
-  if (R.fb_post_metrics?.status === 'fail') fails.push('FB per-post insights — <i>need pages_read_engagement permission granted</i>');
-  if (R.fb_page_insights?.status === 'fail') fails.push('FB page engagement — <i>need pages_read_engagement permission granted</i>');
+  if (R.ig_audience_geo?.status === 'fail') fails.push('IG audience demographics — <i>need instagram_manage_insights → go to App Review to enable</i>');
+  if (R.ig_post_metrics?.status === 'fail') fails.push('IG per-post insights — <i>need instagram_manage_insights → go to App Review to enable</i>');
+  if (R.fb_post_metrics?.status === 'fail') fails.push('FB per-post insights — <i>need pages_read_engagement → go to App Review to enable</i>');
+  if (R.fb_page_insights?.status === 'fail') fails.push('FB page engagement — <i>need pages_read_engagement → go to App Review to enable</i>');
   if (R.ig_profile?.status === 'fail') fails.push(`IG profile — <i>${R.ig_profile.note}</i>`);
   lines.push(fails.map(f => `&nbsp;&nbsp;&#8226; ${f}`).join('<br>'));
 
